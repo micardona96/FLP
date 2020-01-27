@@ -1,3 +1,4 @@
+
 #lang racket
 
 ;; Tip Pro
@@ -18,6 +19,22 @@
 (define diff->n1 (lambda (diff-tree) (cadr diff-tree)))
 (define diff->n2 (lambda (diff-tree) (caddr diff-tree)))
 
+
+(define zero (lambda () (diff '(one) '(one))))
+
+
+(define diff->number (lambda (diff-tree)
+                       (if (one? diff-tree) 1
+                           (- (diff->number (diff->n1 diff-tree))
+                              (diff->number (diff->n2 diff-tree))))))
+
+(define is-zero? (lambda (diff-tree) (= 0 (diff->number diff-tree))))
+
+
+(define successor (lambda (diff-tree) (diff (one) (diff (zero) diff-tree))))
+(define predecessor (lambda (diff-tree) (diff diff-tree (one))))
+
 ;pruebas de variables sencilla.
-(define valor (diff (one) (diff (one) (one))))
-(define basico (one))
+(define cero  (lambda () (diff (one) (one))))
+(define menos  (lambda () (diff (diff (one) (one)) (one))))
+(define uno  (lambda () (one)))
