@@ -1,4 +1,4 @@
-#lang racket
+#lang eopl
 ;; Define Grammar
 ;; Stack ::= (empty-stack)
 ;;       ::= (push-stack symbol Stack)
@@ -22,7 +22,9 @@
 
 ;; pop-stack : Stack => Stack
 (define pop-stack (lambda (Stack)
-                    (if (empty-stack? Stack) (empty-stack) (caddr Stack))))
+                    (if (empty-stack? Stack)
+                        (eopl:error 'pop "you can not remove an item from empty-stack")
+                        (caddr Stack))))
 
 ;; OBSERVADOR - PREDICADO
 ;; empty-stack?: Stack => bool
@@ -31,7 +33,7 @@
 ;; OBSERVADOR - EXTRACTOR
 ;; top-stack : Stack => Stack
 (define top-stack (lambda (Stack)
-                    (if (empty-stack? Stack) (empty-stack) (cadr Stack))))
+                    (if (empty-stack? Stack) 'null (cadr Stack))))
 
 ;; Ejemplos de prueba
 (define vacio (empty-stack))
