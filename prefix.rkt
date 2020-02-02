@@ -28,6 +28,15 @@
       (error-parse-list datum))))
 
 
+(define unparse
+  (lambda (exp)
+    (cases prefix-exp exp
+      (const-exp (number) (list number))
+      (diff-exp (minuendo sustraendo) (cons '-
+                                            (append
+                                             (unparse minuendo)
+                                             (unparse sustraendo)))))))
+
 ;; msg error's
 (define error-parse-list (lambda (var) (eopl:error 'prefix-list "Invalid concrete syntax for list, Give: ~s" var)))
 (define error-parse-exp (lambda (var) (eopl:error 'prefix-exp "Invalid concrete syntax in exp, Give: ~s" var)))
