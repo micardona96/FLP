@@ -12,7 +12,7 @@
     (expresion (numero) num-lit)
     (expresion ("(" expresion operacion expresion ")") exp-lit)
     (expresion (identificador) variable)
-    (expresion ("var" "(" identificador "="  expresion ")" "in" expresion) declaracion) ;; ambiguous??
+    (expresion ("var" "(" (separated-list identificador "="  expresion ",") ")" "in" expresion) declaracion)
     (operacion ("+") suma)
     (operacion ("-") resta)
     (operacion ("*") multiplicacion)
@@ -35,7 +35,7 @@
       (num-lit (n) n)
       (exp-lit (exp1 op exp2) (list (unparse-expresion exp1) (unparse-operacion op) ( unparse-expresion exp2)))
       (variable (id) id)
-      (declaracion (ids exps cuerpo) (list 'var (ids) (unparse-expresion exps) (unparse-expresion cuerpo))) ;; fixed?
+      (declaracion (ids exps cuerpo) (list ids  (map (lambda (x) (unparse-expresion x)) exps) (unparse-expresion cuerpo)))
       )))
 
 (define unparse-operacion
@@ -45,6 +45,3 @@
       (resta () '-)
       (multiplicacion () '*)
       (division () '/))))
-
-
-
