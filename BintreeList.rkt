@@ -1,4 +1,4 @@
-#lang racket
+#lang eopl
 ;; Bintree ::= () | (Int Bintree Bintree)
 
 ;; Diseñar una interfaz para un tipo de datos recursivo
@@ -70,13 +70,13 @@
     (and
      (aux (current-element arbol) (move-to-left-son arbol) >)
      (aux (current-element arbol) (move-to-right-son arbol) <)
-     (if (null? (move-to-left-son arbol)) #t (bintree-order-validation (move-to-left-son arbol)))
-     (if (null? (move-to-right-son arbol)) #t (bintree-order-validation (move-to-right-son arbol))))))
+     (if (empty-bintree? (move-to-left-son arbol)) #t (bintree-order-validation (move-to-left-son arbol)))
+     (if (empty-bintree? (move-to-right-son arbol)) #t (bintree-order-validation (move-to-right-son arbol))))))
 
 (define aux
   (lambda (cabeza comparar op)
-    [if (null? comparar) #t
-        (op cabeza (car comparar))]))
+    [if (empty-bintree? comparar) #t
+        (op cabeza (current-element comparar))]))
 
 
 ;; SAVE STATES
@@ -95,6 +95,8 @@
         (current-element arbol)
         (move-to-left-son arbol)
         (insert-element-into-bintree (move-to-right-son arbol) n))])))
+      
+     
 
 
 ; Ejemplos
