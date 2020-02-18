@@ -28,23 +28,61 @@
                     (else  #f)]))
 
 ;; Extractores
-(define current-element (lambda (arbol) (car arbol)))
+;; addd validation to is-bintree? ???????
 
-(define move-to-left-son (lambda (arbol) (cadr arbol)))
+(define current-element
+  (lambda (arbol) (car arbol)))
 
-(define move-to-right-son (lambda (arbol) (caddr arbol)))
+(define move-to-left-son
+  (lambda (arbol) (cadr arbol)))
 
-(define number-to-bintree (lambda (numero) (list numero '() '())))
+(define move-to-right-son
+  (lambda (arbol) (caddr arbol)))
 
-(define at-leaf? (lambda (arbol)
-                   (and (number? (car arbol)) (null? (cadr arbol)) (null? (caddr arbol)))))
+(define number-to-bintree
+  (lambda (numero) (list numero '() '())))
 
-(define bintree-with-at-least-one-child? (lambda (arbol)
-                   (and (number? (car arbol)) (null? (cadr arbol)) (null? (caddr arbol)))))
+(define at-leaf?
+  (lambda (arbol)
+    (and (empty-bintree? (cadr arbol)) (empty-bintree? (caddr arbol)))))
+
+(define bintree-with-at-least-one-child?
+  (lambda (arbol)
+    (or (not (empty-bintree? (cadr arbol))) (not (empty-bintree? (caddr arbol))))))
+
+
+;; Funciones
+
+(define insert-to-left
+  (lambda (numero arbol)
+    (list (car arbol) (number-to-bintree numero) (caddr arbol))))
+
+(define insert-to-right
+  (lambda (numero arbol)
+    (list (car arbol)  (cadr arbol) (number-to-bintree numero))))
+
+;;; no se como funciona realmene
+
+(define bintree-order-validation
+  (lambda (arbol)
+    (and
+     (aux (current-element arbol) (move-to-left-son arbol) >)
+     (aux (current-element arbol) (move-to-right-son arbol) <)
+     (if (null? (move-to-left-son arbol)) #t (bintree-order-validation (move-to-left-son arbol)))
+     (if (null? (move-to-right-son arbol)) #t (bintree-order-validation (move-to-right-son arbol)))
+     )))
+
+(define aux
+  (lambda (cabeza comparar op)
+    [if (null? comparar) #t
+        (op cabeza (car comparar))]))
 
 ; Ejemplos
 (define arbolito (bintree 1 '() '()))
+(define arbolito2 '(8 (3 (1 () ()) (6 (4 () ()) (7 () ()))) (10 () (14 (13 () ()) ()))))
+(define arbolito3 '(8 (3 (1 () ()) (6 (4 () ()) (7 () ()))) (10 () (14 (20 () ()) ()))))
 (define arbol (bintree 3 (bintree 1 (bintree 5 '() '()) '()) (bintree 2 '() '())))
 (define arbol2 (bintree 3 (bintree 5 '() '()) '()))
+(define arbol3 (bintree 3 '() (bintree 5 '() '()) ))
 (define no-arbol (bintree 'a (bintree 1 (bintree 5 'b '()) '()) (bintree 2 '() '())))
 
