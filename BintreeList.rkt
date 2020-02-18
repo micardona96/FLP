@@ -61,7 +61,9 @@
   (lambda (numero arbol)
     (list (car arbol)  (cadr arbol) (number-to-bintree numero))))
 
-;;; no se como funciona realmene
+
+
+;; EPIC HARD
 
 (define bintree-order-validation
   (lambda (arbol)
@@ -69,20 +71,36 @@
      (aux (current-element arbol) (move-to-left-son arbol) >)
      (aux (current-element arbol) (move-to-right-son arbol) <)
      (if (null? (move-to-left-son arbol)) #t (bintree-order-validation (move-to-left-son arbol)))
-     (if (null? (move-to-right-son arbol)) #t (bintree-order-validation (move-to-right-son arbol)))
-     )))
+     (if (null? (move-to-right-son arbol)) #t (bintree-order-validation (move-to-right-son arbol))))))
 
 (define aux
   (lambda (cabeza comparar op)
     [if (null? comparar) #t
         (op cabeza (car comparar))]))
 
+
+;; SAVE STATES
+(define insert-element-into-bintree
+  (lambda (arbol n)
+    (cond
+      [(empty-bintree? arbol)  (number-to-bintree n)]
+      [(= (current-element arbol) n) arbol]
+      [(> (current-element arbol) n)
+       (bintree
+        (current-element arbol)
+        (insert-element-into-bintree (move-to-left-son arbol) n)
+        (move-to-right-son arbol))]
+      [else
+       (bintree
+        (current-element arbol)
+        (move-to-left-son arbol)
+        (insert-element-into-bintree (move-to-right-son arbol) n))])))
+
+
 ; Ejemplos
 (define arbolito (bintree 1 '() '()))
 (define arbolito2 '(8 (3 (1 () ()) (6 (4 () ()) (7 () ()))) (10 () (14 (13 () ()) ()))))
-(define arbolito3 '(8 (3 (1 () ()) (6 (4 () ()) (7 () ()))) (10 () (14 (20 () ()) ()))))
 (define arbol (bintree 3 (bintree 1 (bintree 5 '() '()) '()) (bintree 2 '() '())))
-(define arbol2 (bintree 3 (bintree 5 '() '()) '()))
+(define arbol2 (bintree 3 (bintree 1 '() '()) '()))
 (define arbol3 (bintree 3 '() (bintree 5 '() '()) ))
 (define no-arbol (bintree 'a (bintree 1 (bintree 5 'b '()) '()) (bintree 2 '() '())))
-
