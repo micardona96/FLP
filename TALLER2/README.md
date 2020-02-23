@@ -6,7 +6,7 @@
 Este repositorio contiene los codigos relativos a diferentes actividades.
 
 * [Bignum32.rkt](Bignum32.rkt)
-* [difftree.rkt](difftree.rkt)
+* [difftree.rkt](Diff-tree.rkt)
 * [pilas-listas.rkt](pilas-listas.rkt)
 * [pilas-procedimientos.rkt](pilas-procedimientos.rkt)
 * [pilas-datatypes.rkt](pilas-datatypes.rkt)
