@@ -18,13 +18,13 @@
     ;; PROGRAMA
     (programa (expresion) un-programa)
     ;; EXPRESIÓN
-    (expresion (numero) num-lit)
-    (expresion ("\"" texto "\"") text-lit)
+    (expresion (numero) numero-lit)
+    (expresion ("\"" texto "\"") texto-lit)
     (expresion (identificador) var-exp)
     (expresion ( "(" expresion primitiva-binaria expresion ")" ) primapp-bin-exp)
-    (expresion (primitiva-unaria expresion) primapp-un-exp)
+    (expresion (primitiva-unaria "(" expresion ")") primapp-un-exp)
     (expresion ("Si" expresion "entonces" expresion "sino" expresion "finSI" )  condicional-exp)
-    (expresion ("declarar" (separated-list identificador "=" expresion ",") "{" expresion "}")
+    (expresion ("declarar" "(" (separated-list identificador "=" expresion ";") ")" "{" expresion "}")
                variableLocal-exp)
     ;; BINARIA
     (primitiva-binaria ("+") primitiva-suma)
@@ -110,14 +110,18 @@
 (define eval-exp
   (lambda (exp env)
    (cases expresion exp
-     (num-lit (num) num)
+     (numero-lit (num) num)
+     (texto-lit (txt) txt)
      (var-exp (id) (buscar-variable id env))
      (primapp-bin-exp (exp1 op exp2) (eval-pri-bin (eval-exp exp1 env) op (eval-exp exp2 env)))
+     (primapp-un-exp (op exp) (eval-pri-un op (eval-exp exp env)))
      (condicional-exp (exp exp-true exp-false)
                       (if (valor-verdad? (eval-exp exp env))
                           (eval-exp exp-true env)
                           (eval-exp exp-false env)))
-     (else 'nada))))
+     (variableLocal-exp (ids exps cuerpo)
+                        (let ((valores (eval-exps exps env)))
+                          (eval-exp cuerpo (extended-env ids valores env)))))))
 
 
 (define eval-pri-bin
@@ -125,7 +129,29 @@
     (cases primitiva-binaria op
       (primitiva-suma () (+ val1 val2))
       (primitiva-resta () (- val1 val2))
-      (else 'nada))))
+      (primitiva-div () (/ val1 val2))
+      (primitiva-multi () (* val1 val2))
+      (primitiva-concat () (string-append val1 val2))
+      )))
+
+(define eval-pri-un
+  (lambda (op val)
+    (cases primitiva-unaria op
+      (primitiva-longitud () (string-length val))
+      (primitiva-add1 () (+ 1 val))
+      (primitiva-sub1 () (- val 1)))))
+
+
+; funciones auxiliares para aplicar eval-expression a cada elemento de una 
+; lista de operandos (expresiones)
+(define eval-exps
+  (lambda (rands env)
+    (map (lambda (x) (eval-rand x env)) rands)))
+
+(define eval-rand
+  (lambda (rand env)
+    (eval-exp rand env)))
+
 
 ;; SHELL PROMPT  @user ->
 (define Dr-Shell
@@ -133,3 +159,5 @@
     (lambda (pgm) (eval-program pgm)) 
     (sllgen:make-stream-parser 
       especificacion-lexica especificacion-gramatical)))
+
+
