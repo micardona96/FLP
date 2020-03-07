@@ -236,7 +236,11 @@ MULTIPLICAR
                 sino 0 finSI)
              con evaluar @multiplicar (3,4) finEval"))
 
+
+
 PROGRAMA QUE HACE SUMAS RESTAS Y MULTIPLICACIONES
+@b > tiene que ser mayor o igual que 0, sino el algoritmo no parara, ya que resta de 1 hasta llegar a
+cero.
 (eval-program (parser "procedimiento-rec
       (
        @sumar (@a, @b) haga
@@ -255,6 +259,10 @@ PROGRAMA QUE HACE SUMAS RESTAS Y MULTIPLICACIONES
        con evaluar @multi (3,4) finEval"))
 
 |#
+
+
+
+
 
 
 
