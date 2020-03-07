@@ -212,12 +212,49 @@
 
 
 
+#|
+
+AREA
+(eval-program (parser "evaluar
+                       procedimiento (@radio)
+                           haga (3.141516 * (@radio * @radio)) finProc
+                       (4) finEval"))
+
+FACTORIAL
+(eval-program (parser "procedimiento-rec
+    (@factorial (@x) haga
+           Si @x
+                 entonces (evaluar @factorial ((@x ~ 1)) finEval * @x)
+                 sino 1 finSI)
+              con evaluar  @factorial (3) finEval"))
+
+MULTIPLICAR
+(eval-program (parser "procedimiento-rec
+      (@multiplicar (@a, @b) haga
+          Si @b
+                entonces (evaluar @multiplicar (@a ,sub1(@b)) finEval + @a)
+                sino 0 finSI)
+             con evaluar @multiplicar (3,4) finEval"))
+
+PROGRAMA QUE HACE SUMAS RESTAS Y MULTIPLICACIONES
+(eval-program (parser "procedimiento-rec
+      (
+       @sumar (@a, @b) haga
+          Si @b
+                entonces evaluar @sumar (add1(@a),sub1(@b)) finEval
+                sino @a finSI
+       @restar (@a, @b) haga
+          Si @b
+                entonces evaluar @restar (sub1(@a),sub1(@b)) finEval
+                sino @a finSI
+       @multi (@a, @b) haga
+          Si @b
+                entonces evaluar @sumar
+                        (evaluar @multi (@a ,sub1(@b)) finEval  , @a) finEval
+                sino 0 finSI)
+       con evaluar @multi (3,4) finEval"))
+
+|#
 
 
-;; PROCEDIMIENTOS RECURSIVOS
-;; "procedimiento-rec
-;;     (@factorial (@x) haga
-;;           Si @x entonces (evaluar @factorial ((@x ~ 1)) finEval * @x) sino 1 finSI
-;;     )
-;;      con evaluar  @factorial (3) finEval"))
-;;
+
