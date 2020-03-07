@@ -26,6 +26,17 @@
     (expresion ("Si" expresion "entonces" expresion "sino" expresion "finSI" )  condicional-exp)
     (expresion ("declarar" "(" (separated-list identificador "=" expresion ";") ")" "{" expresion "}")
                variableLocal-exp)
+    (expresion ("procedimiento" "("
+               (separated-list identificador  ",") ")" "haga" expresion "finProc") procedimiento-ex)
+    
+    (expresion ("procedimiento-rec"
+                "(" (arbno identificador "(" (separated-list identificador ",") ")" "haga" expresion ) ")"
+                "con"  expresion)
+                procedimiento-rec)
+    
+    (expresion ("evaluar" expresion "(" (separated-list expresion  ",") ")" "finEval") app-exp)
+    
+    
     ;; BINARIA
     (primitiva-binaria ("+") primitiva-suma)
     (primitiva-binaria ("~") primitiva-resta)
@@ -54,7 +65,12 @@
   (empty-env)
   (extended-env (syms (list-of symbol?))
                 (vals (list-of scheme-value?))
-                (env env?)))
+                (env env?))
+ (extended-env-rec
+  (proc-names (list-of symbol?))
+  (syms (list-of (list-of symbol?)))
+  (vals (list-of scheme-value?))
+  (env env?)))
 
 ;función que crea un ambiente vacío
 (define env0 (lambda () (empty-env)))
@@ -70,11 +86,19 @@
   (lambda (id ambiente)
     (cases env ambiente
       (empty-env ()(eopl:error 'buscar-variable "Error, la variable no existe ~s" id))
-      (extended-env (syms vals ambiente)
+      (extended-env (syms vals ambiente-old)
                            (let ((index (list-find-position id syms)))
                              (if (number? index)
                                  (list-ref vals index)
-                                 (buscar-variable id ambiente)))))))
+                                 (buscar-variable id ambiente-old))))
+      (extended-env-rec (proc-names symss vals ambiente-old)
+                           (let ((index (list-find-position id proc-names)))
+                             (if (number? index)
+                                 (cerradura (list-ref symss index)
+                                            (list-ref vals index)
+                                            ambiente)
+                                 (buscar-variable id ambiente-old))))
+      )))
 
 
 ;; busca un elemento en una lista, item a item
@@ -120,8 +144,20 @@
                           (eval-exp exp-true env)
                           (eval-exp exp-false env)))
      (variableLocal-exp (ids exps cuerpo)
-                        (let ((valores (eval-exps exps env)))
-                          (eval-exp cuerpo (extended-env ids valores env)))))))
+                        (let ((valores (eval-rands exps env)))
+                          (eval-exp cuerpo (extended-env ids valores env))))
+    (procedimiento-ex (ids cuerpo) (cerradura ids cuerpo env))
+    (procedimiento-rec (names idss cuerpo cuerpo-rec)
+                       (eval-exp cuerpo-rec (extended-env-rec names idss cuerpo env)))
+    (app-exp (operador operando)
+             (let
+                 ((proc (eval-exp operador env))
+                  (args (eval-rands operando env)))
+               (if (procVal? proc)
+                   (apply-procedure proc args)
+                   (eopl:error 'eval-exp "error al evaluar el operador (rator) ~s" proc))))
+    ;;(else 'else)
+     )))
 
 
 (define eval-pri-bin
@@ -144,7 +180,7 @@
 
 ; funciones auxiliares para aplicar eval-expression a cada elemento de una 
 ; lista de operandos (expresiones)
-(define eval-exps
+(define eval-rands
   (lambda (rands env)
     (map (lambda (x) (eval-rand x env)) rands)))
 
@@ -161,3 +197,27 @@
       especificacion-lexica especificacion-gramatical)))
 
 
+;; CLOSURE
+
+(define-datatype procVal procVal?
+  (cerradura
+   (ids (list-of symbol?))
+   (exp expresion?)
+   (env env?)))
+
+(define apply-procedure
+  (lambda (proc args)
+    (cases procVal proc
+      (cerradura (ids exp env) (eval-exp exp (extended-env ids args env))))))
+
+
+
+
+
+;; PROCEDIMIENTOS RECURSIVOS
+;; "procedimiento-rec
+;;     (@factorial (@x) haga
+;;           Si @x entonces (evaluar @factorial ((@x ~ 1)) finEval * @x) sino 1 finSI
+;;     )
+;;      con evaluar  @factorial (3) finEval"))
+;;
