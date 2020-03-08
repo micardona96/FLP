@@ -5,57 +5,40 @@
     CODE: 1628209
 
 
-ANALIZAR LA GRAMATICA
+GRAMATICA
+
 <programa> :=  <expresion>
                un-programa (exp)
 <expresion> := <numero>
                numero-lit (num)
-
             := "\""<texto> "\""
                texto-lit (txt)
-
             := <identificador>
                var-exp (id)
-
             := (expresion <primitiva-binaria> expresion)
                primapp-bin-exp (exp1 prim-binaria exp2)
-
             := <primitiva-unaria> (expresion)
                primapp-un-exp (prim-unaria exp)
-
             := Si <expresion> entonces <expresion>  sino <expresion> finSI
                condicional-exp (test-exp true-exp false-exp)
-
             := declarar (<identificador> = <expresion> ';')*) { <expresion> }
                variableLocal-exp (ids exps cuerpo)
-
             := procedimiento (<identificador>','*) haga <expresion> finProc
                procedimiento-ex (ids cuero)
-
             := procedimiento-rec (<identificador> (<identificador> ','*)* haga <expresion> ) con <expresion>  
                procedimiento-rec (names idss cuerpo cuerpo-rec)
-
             :=  evaluar <expresion>  (expresion ",")*  finEval
                 app-exp(exp exps)
-
 <primitiva-binaria> :=  + (primitiva-suma)
                     :=  ~ (primitiva-resta)
                     :=  / (primitiva-div)
                     :=  * (primitiva-multi)
                     :=  concat (primitiva-concat)
-
 <primitiva-unaria>  :=  longitud (primitiva-longitud)
                     :=  add1 (primitiva-add1)
                     :=  sub1 (primitiva-sub1)
 
-
-ANALISIS LEXICA
-<numero>: Debe definirse para valores decimales y enteros (positivos y negativos)
-<texto>: Debe definirse para cualquier texto escrito en racket
-<identificador>: En este lenguaje todo identificador iniciará con el símbolo  @,
-                 es decir las variables @x y @z son válidas
 |#
-
 
 ;*******************************************************************************************
 ;; LEXICAS
@@ -280,15 +263,56 @@ ANALISIS LEXICA
 
 #|
 
-MIS PRIMEROS PROGRAMAS
+********************************************
+TEST
 
-AREA DE UN CIRCULOS
+(eval-program (parser "@a"))
+
+(eval-program (parser "@b"))
+
+(eval-program (parser "@e"))
+
+(eval-program (parser "Si (2+3) entonces 2 sino 3 finSI"))
+
+(eval-program (parser "Si (longitud(@d) ~ 4) entonces 2 sino 3 finSI"))
+
+(eval-program (parser "declarar (@x=2;@y=3;@a=7)
+                  {(@a+(@x~@y))}"))
+
+
+(eval-program (parser "declarar (@x=2;@y=3;@a=7)
+                  {(@a+@b)}"))
+
+(eval-program (parser "procedimiento (@x,@y,@z) haga ((@x+@y)+@z) finProc"))
+
+(eval-program (parser "declarar (
+      @x=2;
+      @y=3;
+      @a=procedimiento (@x,@y,@z) haga ((@x+@y)+@z) finProc) { 
+         evaluar @a (1,2,@x) finEval}"))
+
+(eval-program (parser "declarar (
+     @x=procedimiento (@a,@b) haga ((@a*@a) + (@b*@b)) finProc;
+     @y=procedimiento (@x,@y) haga (@x+@y) finProc) { 
+      ( evaluar @x(1,2) finEval + evaluar @y(2,3) finEval )}"))
+
+
+(eval-program (parser "declarar (
+      @x= Si (@a*@b) entonces (@d concat @e) sino longitud((@d concat @e)) finSI;
+      @y=procedimiento (@x,@y) haga (@x+@y) finProc) { 
+       (longitud(@x) * evaluar @y(2,3) finEval )}"))
+
+
+PROGRAMAS
+********************************************
+CALCULA AREA DE UN CIRCULOS CON UN R
 (eval-program (parser "evaluar
                        procedimiento (@radio)
                            haga (3.141516 * (@radio * @radio)) finProc
                        (4) finEval"))
 
-FACTORIAL
+********************************************
+FACTORIAL DE UN NUMERO
 (eval-program (parser "procedimiento-rec
     (@factorial (@x) haga
            Si @x
@@ -296,21 +320,25 @@ FACTORIAL
                  sino 1 finSI)
               con evaluar  @factorial (10) finEval"))
 
-MULTIPLICAR
+
+********************************************
+MULTIPLICAR DOS NUMEROS
 (eval-program (parser "procedimiento-rec
       (@multiplicar (@a, @b) haga
           Si @b
                 entonces (evaluar @multiplicar (@a ,sub1(@b)) finEval + @a)
                 sino 0 finSI)
-             con evaluar @multiplicar (10,0) finEval"))
+             con evaluar @multiplicar (10,3) finEval"))
 
 
 
+******************************************
 PROGRAMA QUE HACE SUMAS RESTAS Y MULTIPLICACIONES
 @b > tiene que ser mayor o igual que 0, sino el algoritmo no parara, ya que resta de 1 hasta llegar a
 cero.
 
-SUMA
+******************************************
+SUMA DE DOS NUMEROS RECURSIVO SOLO CON ADD1 Y SUB1
 (eval-program (parser "procedimiento-rec
       (
        @sumar (@a, @b) haga
@@ -328,7 +356,9 @@ SUMA
                 sino 0 finSI)
        con evaluar @sumar (3,4) finEval"))
 
-RESTA
+
+***********************************
+RESTA DE DOS NUMEROS RECURSIVO SOLO CON ADD1 Y SUB1
 (eval-program (parser "procedimiento-rec
       (
        @sumar (@a, @b) haga
@@ -347,7 +377,8 @@ RESTA
        con evaluar @restar (3,4) finEval"))
 
 
-MULTIPLICAR
+***************************************
+MULTIPLICACION DE DOS NUMEROS RECURSIVO SOLO CON ADD1 Y SUB1
 (eval-program (parser "procedimiento-rec
       (
        @sumar (@a, @b) haga
@@ -364,9 +395,10 @@ MULTIPLICAR
                         (evaluar @multi (@a ,sub1(@b)) finEval  , @a) finEval
                 sino 0 finSI)
        con evaluar @multi (3,4) finEval"))
-
-
 |#
 
+;; ***************************************
+;; Graficos árbol de sintaxis abstracta
+;; revisar los archivos png en la carpeta ANEXOS para mayor calirdad.
 
 
