@@ -1,4 +1,62 @@
 #lang eopl
+
+#|
+    DEV: MIGUEL ÁNGEL CARDONA CHAMORRO
+    CODE: 1628209
+
+
+ANALIZAR LA GRAMATICA
+<programa> :=  <expresion>
+               un-programa (exp)
+<expresion> := <numero>
+               numero-lit (num)
+
+            := "\""<texto> "\""
+               texto-lit (txt)
+
+            := <identificador>
+               var-exp (id)
+
+            := (expresion <primitiva-binaria> expresion)
+               primapp-bin-exp (exp1 prim-binaria exp2)
+
+            := <primitiva-unaria> (expresion)
+               primapp-un-exp (prim-unaria exp)
+
+            := Si <expresion> entonces <expresion>  sino <expresion> finSI
+               condicional-exp (test-exp true-exp false-exp)
+
+            := declarar (<identificador> = <expresion> ';')*) { <expresion> }
+               variableLocal-exp (ids exps cuerpo)
+
+            := procedimiento (<identificador>','*) haga <expresion> finProc
+               procedimiento-ex (ids cuero)
+
+            := procedimiento-rec (<identificador> (<identificador> ','*)* haga <expresion> ) con <expresion>  
+               procedimiento-rec (names idss cuerpo cuerpo-rec)
+
+            :=  evaluar <expresion>  (expresion ",")*  finEval
+                app-exp(exp exps)
+
+<primitiva-binaria> :=  + (primitiva-suma)
+                    :=  ~ (primitiva-resta)
+                    :=  / (primitiva-div)
+                    :=  * (primitiva-multi)
+                    :=  concat (primitiva-concat)
+
+<primitiva-unaria>  :=  longitud (primitiva-longitud)
+                    :=  add1 (primitiva-add1)
+                    :=  sub1 (primitiva-sub1)
+
+
+ANALISIS LEXICA
+<numero>: Debe definirse para valores decimales y enteros (positivos y negativos)
+<texto>: Debe definirse para cualquier texto escrito en racket
+<identificador>: En este lenguaje todo identificador iniciará con el símbolo  @,
+                 es decir las variables @x y @z son válidas
+|#
+
+
 ;*******************************************************************************************
 ;; LEXICAS
 (define especificacion-lexica
@@ -28,12 +86,10 @@
                variableLocal-exp)
     (expresion ("procedimiento" "("
                (separated-list identificador  ",") ")" "haga" expresion "finProc") procedimiento-ex)
-    
     (expresion ("procedimiento-rec"
                 "(" (arbno identificador "(" (separated-list identificador ",") ")" "haga" expresion ) ")"
                 "con"  expresion)
                 procedimiento-rec)
-    
     (expresion ("evaluar" expresion "(" (separated-list expresion  ",") ")" "finEval") app-exp)
     
     
@@ -81,7 +137,7 @@
 ;; Analiza si un parametro v es un valor valido de scheme => boolean
 (define scheme-value? (lambda (v) #t))
 
-;función que busca un símbolo en un ambiente
+;función que busca un símbolo en un ambiente, y retorna su valor,
 (define buscar-variable
   (lambda (id ambiente)
     (cases env ambiente
@@ -106,7 +162,8 @@
   (lambda (id lista)
     (list-index (lambda (x) (eqv? x id)) lista)))
 
-;; analiar si un elemento es igual al id que se busca, item a item por la lista
+;; funcion que busca si un elemento (retorna un indice, o falso si no se encuentra)
+;; esta en una lista , item a item por la lista
 (define list-index
   (lambda (func ls)
     (cond
@@ -121,16 +178,21 @@
 ;; EVALUADORES
 
 ;; TRUE AND FALSE
+;; funcion que simula los booleanos con el caso base que 0 es falso y el resto sera verdad
 (define valor-verdad?
   (lambda (value)
     (if (zero? value) #f #t)))
 
-;; PROGRAMA
+;; EVAL-PROGRAM
+;; funcion que evalua un progrma, lo desempaqueta en un expresion, y se anexa un ambiente inicial.
 (define eval-program
   (lambda (exe)
    (cases programa exe
      (un-programa (body) (eval-exp body (init-env))))))
 
+;; EVAL-EXP
+;; funcion que desempaqueta expresiones usando cases para cada una de sus producciones
+;; en la gramatica, ademas hace llamados a funcione anexas para desempaquetar primitivas y closure's
 (define eval-exp
   (lambda (exp env)
    (cases expresion exp
@@ -150,16 +212,15 @@
     (procedimiento-rec (names idss cuerpo cuerpo-rec)
                        (eval-exp cuerpo-rec (extended-env-rec names idss cuerpo env)))
     (app-exp (operador operando)
-             (let
-                 ((proc (eval-exp operador env))
+             (let ((proc (eval-exp operador env))
                   (args (eval-rands operando env)))
                (if (procVal? proc)
                    (apply-procedure proc args)
                    (eopl:error 'eval-exp "error al evaluar el operador (rator) ~s" proc))))
-    ;;(else 'else)
      )))
 
-
+;; EVAL PRIMITVE BINARY
+;; funcion que calcula un valor con una primitiva binaria.
 (define eval-pri-bin
   (lambda (val1 op val2)
     (cases primitiva-binaria op
@@ -170,6 +231,8 @@
       (primitiva-concat () (string-append val1 val2))
       )))
 
+;; EVAL PRIMITIVE AN OPERATOR
+;; funcion que calcula un valor con una primitiva unaria.
 (define eval-pri-un
   (lambda (op val)
     (cases primitiva-unaria op
@@ -184,6 +247,7 @@
   (lambda (rands env)
     (map (lambda (x) (eval-rand x env)) rands)))
 
+;; funcion auiliar que evalua un elemento en un ambiente
 (define eval-rand
   (lambda (rand env)
     (eval-exp rand env)))
@@ -191,30 +255,34 @@
 
 ;; SHELL PROMPT  @user ->
 (define Dr-Shell
-  (sllgen:make-rep-loop  "@user ->"
+  (sllgen:make-rep-loop  "@Miguel Cardona ->"
     (lambda (pgm) (eval-program pgm)) 
     (sllgen:make-stream-parser 
       especificacion-lexica especificacion-gramatical)))
 
 
 ;; CLOSURE
-
+;; Definicion del constructor del tipo de dato procedimiento, con una
+;; produccion de tipo cerradura
 (define-datatype procVal procVal?
   (cerradura
    (ids (list-of symbol?))
    (exp expresion?)
    (env env?)))
 
+;; Funcion que aplica un procedimiento a una lista de argumentos.
+;; usado para desenpaquetar el closure
 (define apply-procedure
   (lambda (proc args)
     (cases procVal proc
       (cerradura (ids exp env) (eval-exp exp (extended-env ids args env))))))
 
 
-
 #|
 
-AREA
+MIS PRIMEROS PROGRAMAS
+
+AREA DE UN CIRCULOS
 (eval-program (parser "evaluar
                        procedimiento (@radio)
                            haga (3.141516 * (@radio * @radio)) finProc
@@ -226,7 +294,7 @@ FACTORIAL
            Si @x
                  entonces (evaluar @factorial ((@x ~ 1)) finEval * @x)
                  sino 1 finSI)
-              con evaluar  @factorial (3) finEval"))
+              con evaluar  @factorial (10) finEval"))
 
 MULTIPLICAR
 (eval-program (parser "procedimiento-rec
@@ -234,13 +302,52 @@ MULTIPLICAR
           Si @b
                 entonces (evaluar @multiplicar (@a ,sub1(@b)) finEval + @a)
                 sino 0 finSI)
-             con evaluar @multiplicar (3,4) finEval"))
+             con evaluar @multiplicar (10,0) finEval"))
 
 
 
 PROGRAMA QUE HACE SUMAS RESTAS Y MULTIPLICACIONES
 @b > tiene que ser mayor o igual que 0, sino el algoritmo no parara, ya que resta de 1 hasta llegar a
 cero.
+
+SUMA
+(eval-program (parser "procedimiento-rec
+      (
+       @sumar (@a, @b) haga
+          Si @b
+                entonces evaluar @sumar (add1(@a),sub1(@b)) finEval
+                sino @a finSI
+       @restar (@a, @b) haga
+          Si @b
+                entonces evaluar @restar (sub1(@a),sub1(@b)) finEval
+                sino @a finSI
+       @multi (@a, @b) haga
+          Si @b
+                entonces evaluar @sumar
+                        (evaluar @multi (@a ,sub1(@b)) finEval  , @a) finEval
+                sino 0 finSI)
+       con evaluar @sumar (3,4) finEval"))
+
+RESTA
+(eval-program (parser "procedimiento-rec
+      (
+       @sumar (@a, @b) haga
+          Si @b
+                entonces evaluar @sumar (add1(@a),sub1(@b)) finEval
+                sino @a finSI
+       @restar (@a, @b) haga
+          Si @b
+                entonces evaluar @restar (sub1(@a),sub1(@b)) finEval
+                sino @a finSI
+       @multi (@a, @b) haga
+          Si @b
+                entonces evaluar @sumar
+                        (evaluar @multi (@a ,sub1(@b)) finEval  , @a) finEval
+                sino 0 finSI)
+       con evaluar @restar (3,4) finEval"))
+
+
+MULTIPLICAR
 (eval-program (parser "procedimiento-rec
       (
        @sumar (@a, @b) haga
@@ -258,11 +365,8 @@ cero.
                 sino 0 finSI)
        con evaluar @multi (3,4) finEval"))
 
+
 |#
-
-
-
-
 
 
 
