@@ -2,7 +2,92 @@
 
 #| DEV: MIGUEL ÁNGEL CARDONA CHAMORRO
    CODE: 1628209
+
+
+   GRAMATICA
+
+<expresion> := <numero>
+               number (numero)
+
+            := true | false
+
+            := "\'" <texto> "\'"
+               string (texto)
+
+            := <identificador>
+               id (identificador)
+
+            := if (<expresion>) {<expresion>} else {<expresion>}
+               condicional (test-exp true-exp false-exp)
+
+            := const <identificador> = <expresion>
+               constante (id exp)
+
+            := static <identificador>
+               var-asig-unica (id)
+
+            := * <identificador> => <expresion>
+               set-asig-unica (id)
+
+            := const <identificador> = <expresion>
+               constante (id exp )
+
+            := x32 [ <numero>(+) ]
+               base-32 (numeros)
+
+            := x16 [ <numero>(+) ]
+               base-16 (numeros)
+
+            := x8 [ <numero>(+) ]
+               base-8 (numeros)
+
+            := ! <expresion>
+               negacion (exp)
+
+            := Logic ( <expresion> <primitive-bool> <expresion> )
+               binary-bool (exp prim-bool exp)
+
+            := Calculate ( <expresion> <primitive-decimal> <expresion> )
+               binary-bool (exp prim-bool exp)
+
+            := Solve ( <expresion> <primitive-x-base> <expresion> )
+               binary-bool (exp prim-bool exp)
+
+            := Eval <identificador>  (<expresion>(*))
+               eval-expresion (id exps)
+
+            := <primitive-string> (<expresion>(+))
+               string-exp (prim-string exps)
+
+            := <primitive-list> (<expresion>^(*))
+               list-exp (prim-list exps)
+
+            := <primitive-x-base> <expresion>
+               unario-x-base (prim-x-base exp)
+
+            := <primitive-decimal> <expresion>
+               unario-decimal (prim-decimal exp)
+
+            := (<identificador> (,)(*)) => {<expresion>}
+               procedimiento (ids exp)
+
+            := func <identificador> (<identificador> (,)(*)) => {<expresion>}
+               procedimiento-recursivo (id ids exp)
+
+
+<primitive-bool> :=  > | >= | <= | < | == | && || !=
+
+<primitive-decimal> :=  + | - | * | / | ++ | -- | mod
+
+<primitive-x-base> :=  + | - | * | ++ | -- 
+
+<primitive-string> :=  strlen | concat
+
+<primitive-list> := isNull | join | isList | new List | pop | next | push
+
 |#
+
+
 ;*******************************************************************************************
 ;; LEXICAS
 (define lexica
@@ -25,12 +110,13 @@
     ;; EXPRESIONES
     (expresion (numero) number)
     (expresion ("true") true)
-    (expresion ("false") true)
+    (expresion ("false") false)
     (expresion ("\'" texto "\'") string) ;; PHP
     (expresion (identificador) id)      ;; PHP
     (expresion ("if" "(" expresion ")" "{" expresion "}" "else" "{" expresion "}") condicional) ;; JAVASCRIPT
     (expresion ("const" identificador "=" expresion )constante) ;; C
     (expresion ("static" identificador) var-asig-unica) ;; C
+    (expresion ("*" identificador "=>" expresion) set-asig-unica) ;; C
     (expresion ("x32" "[" numero (arbno numero) "]") base-32);; Guía del proyecto
     (expresion ("x16" "[" numero (arbno numero) "]") base-16);; Guía del proyecto
     (expresion ("x8"  "[" numero (arbno numero) "]") base-8);; Guía del proyecto
@@ -40,9 +126,14 @@
     (expresion ("Calculate"  "(" expresion primitive-decimal expresion ")") binary-decimal)
     (expresion ("Solve" "(" expresion primitive-x-base expresion ")") binary-x-base)
     (expresion ("Eval" identificador "(" (arbno expresion) ")") eval-expresion)
+    (expresion (primitive-string  "(" expresion (arbno expresion) ")") string-exp)
+    (expresion (primitive-list "(" (arbno expresion) ")") list-exp)
+    (expresion (primitive-x-base (expresion)) unario-x-base)
+    (expresion (primitive-decimal (expresion)) unario-decimal)
     
     (expresion ("("(separated-list identificador ",") ")" "=>" "{" expresion "}") procedimiento) ;; JAVASCRIPT
-    (expresion ("func" identificador "("(separated-list identificador ",") ")" "=>" "{" expresion "}") procedimiento-recursivo) ;; SWIFT 5.2
+    (expresion ("func" identificador "("(separated-list identificador ",") ")" "=>" "{" expresion "}")
+               procedimiento-recursivo) ;; SWIFT
    
     ;; PRIMITIVAS BOOLEANAS
     (primitive-bool (">") mayor) ;; JAVASCRIPT
@@ -72,16 +163,16 @@
 
      ;; PRIMITIVAS STRINGS
      (primitive-string ("strlen") longitud) ;; PHP
-     (primitive-string (".") concatenar) ;; PHP
+     (primitive-string ("concat") concatenar) ;; C#
 
       ;; PRIMITIVAS LISTAS
      (primitive-list ("isNull") es-vacia?) ;; JAVASCRIPT
-     (primitive-list ("join") cons) ;; JAVASCRIPT 
+     (primitive-list ("join") join-list) ;; JAVASCRIPT 
      (primitive-list ("isList") es-lista?) ;; JAVASCRIPT
-     (primitive-list ("new List") primer-elmt) ;; JAVASCRIPT, crea una lista vacia
+     (primitive-list ("new List") new-list) ;; JAVASCRIPT, crea una lista vacia
      (primitive-list ("pop") primer-elmt) ;; JAVASCRIPT, retorna el primer elemento
-     (primitive-list ("next") primer-elmt) ;; Estructuras en C, retorna el resto
-     (primitive-list ("push") primer-elmt) ;; JAVASCRIPT, append de dos listas
+     (primitive-list ("next") next-elmt) ;; Estructuras en C, retorna el resto
+     (primitive-list ("push") push-elmt) ;; JAVASCRIPT, append de dos listas
     
    ))
 
@@ -106,4 +197,3 @@
   (sllgen:make-rep-loop  "Mixer-> "
     (lambda (main) (eval-program main)) 
     (sllgen:make-stream-parser lexica gramatical)))
-
