@@ -116,25 +116,33 @@
     (expresion ("if" "(" expresion ")" "{" expresion "}" "else" "{" expresion "}") condicional) ;; JAVASCRIPT
     (expresion ("const" identificador "=" expresion )constante) ;; C
     (expresion ("static" identificador) var-asig-unica) ;; C
-    (expresion ("*" identificador "=>" expresion) set-asig-unica) ;; C
+    (expresion (">" identificador ">" expresion) set-asig-unica) ;; C
     (expresion ("x32" "[" numero (arbno numero) "]") base-32);; Guía del proyecto
     (expresion ("x16" "[" numero (arbno numero) "]") base-16);; Guía del proyecto
     (expresion ("x8"  "[" numero (arbno numero) "]") base-8);; Guía del proyecto
-    (expresion ("!" expresion) negacion);; JAVASCRIPT UNARIA
-   
     (expresion ("Logic" "(" expresion primitive-bool expresion ")") binary-bool)
     (expresion ("Calculate"  "(" expresion primitive-decimal expresion ")") binary-decimal)
     (expresion ("Solve" "(" expresion primitive-x-base expresion ")") binary-x-base)
+    (expresion (primitive-unaria expresion) prim-unaria)
     (expresion ("Eval" identificador "(" (arbno expresion) ")") eval-expresion)
-    (expresion (primitive-string  "(" expresion (arbno expresion) ")") string-exp)
     (expresion (primitive-list "(" (arbno expresion) ")") list-exp)
-    (expresion (primitive-x-base (expresion)) unario-x-base)
-    (expresion (primitive-decimal (expresion)) unario-decimal)
-    
     (expresion ("("(separated-list identificador ",") ")" "=>" "{" expresion "}") procedimiento) ;; JAVASCRIPT
     (expresion ("func" identificador "("(separated-list identificador ",") ")" "=>" "{" expresion "}")
                procedimiento-recursivo) ;; SWIFT
-   
+
+
+    ;; PRIMITIVAS UNARIAS
+    (primitive-unaria ("!") negacion) ;; JAVASCRIPT
+    (primitive-unaria ("++") plus-one) ;; C++
+    (primitive-unaria ("--") minus-one) ;; C++
+    (primitive-unaria ("strlen") longitud) ;; PHP
+    (primitive-unaria ("concat") concatenar) ;; C#
+    (primitive-unaria ("isNull") es-vacia?) ;; JAVASCRIPT
+    (primitive-unaria ("isList") es-lista?) ;; JAVASCRIPT
+    (primitive-unaria ("new List") new-list) ;; JAVASCRIPT, crea una lista vacia
+    (primitive-unaria ("pop") primer-elmt) ;; JAVASCRIPT, retorna el primer elemento
+    (primitive-unaria ("next") next-elmt) ;; Estructuras en C, retorna el resto
+    
     ;; PRIMITIVAS BOOLEANAS
     (primitive-bool (">") mayor) ;; JAVASCRIPT
     (primitive-bool (">=") mayor-o-igual) ;; JAVASCRIPT
@@ -150,28 +158,15 @@
     (primitive-decimal ("-") sub-decimal) ;; C++
     (primitive-decimal ("*") mult-decimal) ;; C++
     (primitive-decimal ("/") div-decimal) ;; C++
-    (primitive-decimal ("++") plus-1-decimal) ;; C++
-    (primitive-decimal ("--") minus-1-decimal) ;; C++
     (primitive-decimal ("mod") mod-decimal) ;; Visual Basic
 
      ;; PRIMITIVAS OTRAS BASES
     (primitive-x-base ("+") add-x-base) ;; C++
     (primitive-x-base ("-") sub-x-base) ;; C++
     (primitive-x-base ("*") mult-x-base) ;; C++
-    (primitive-x-base ("++") plus-1-x-base) ;; C++
-    (primitive-x-base ("--") minus-1-x-base) ;; C++
-
-     ;; PRIMITIVAS STRINGS
-     (primitive-string ("strlen") longitud) ;; PHP
-     (primitive-string ("concat") concatenar) ;; C#
 
       ;; PRIMITIVAS LISTAS
-     (primitive-list ("isNull") es-vacia?) ;; JAVASCRIPT
-     (primitive-list ("join") join-list) ;; JAVASCRIPT 
-     (primitive-list ("isList") es-lista?) ;; JAVASCRIPT
-     (primitive-list ("new List") new-list) ;; JAVASCRIPT, crea una lista vacia
-     (primitive-list ("pop") primer-elmt) ;; JAVASCRIPT, retorna el primer elemento
-     (primitive-list ("next") next-elmt) ;; Estructuras en C, retorna el resto
+     (primitive-list ("join") join-list) ;; JAVASCRIPT
      (primitive-list ("push") push-elmt) ;; JAVASCRIPT, append de dos listas
     
    ))
