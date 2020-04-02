@@ -12,7 +12,7 @@
             := true | false
 
             := "\'" <texto> "\'"
-               string (texto)
+               texto (texto)
 
             := <identificador>
                id (identificador)
@@ -26,7 +26,7 @@
             := static <identificador>
                var-asig-unica (id)
 
-            := * <identificador> => <expresion>
+            := @ <identificador> => <expresion>
                set-asig-unica (id)
 
             := const <identificador> = <expresion>
@@ -108,66 +108,65 @@
     (main (expresion) run-main)
 
     ;; EXPRESIONES
-    (expresion (numero) number)
-    (expresion ("true") true)
-    (expresion ("false") false)
-    (expresion ("\'" texto "\'") string) ;; PHP
-    (expresion (identificador) id)      ;; PHP
-    (expresion ("if" "(" expresion ")" "{" expresion "}" "else" "{" expresion "}") condicional) ;; JAVASCRIPT
-    (expresion ("const" identificador "=" expresion )constante) ;; C
-    (expresion ("static" identificador) var-asig-unica) ;; C
-    (expresion (">" identificador ">" expresion) set-asig-unica) ;; C
-    (expresion ("x32" "[" numero (arbno numero) "]") base-32);; Guía del proyecto
-    (expresion ("x16" "[" numero (arbno numero) "]") base-16);; Guía del proyecto
-    (expresion ("x8"  "[" numero (arbno numero) "]") base-8);; Guía del proyecto
-    (expresion ("Logic" "(" expresion primitive-bool expresion ")") binary-bool)
-    (expresion ("Calculate"  "(" expresion primitive-decimal expresion ")") binary-decimal)
-    (expresion ("Solve" "(" expresion primitive-x-base expresion ")") binary-x-base)
-    (expresion (primitive-unaria expresion) prim-unaria)
-    (expresion ("Eval" identificador "(" (arbno expresion) ")") eval-expresion)
-    (expresion (primitive-list "(" (arbno expresion) ")") list-exp)
-    (expresion ("("(separated-list identificador ",") ")" "=>" "{" expresion "}") procedimiento) ;; JAVASCRIPT
-    (expresion ("func" identificador "("(separated-list identificador ",") ")" "=>" "{" expresion "}")
-               procedimiento-recursivo) ;; SWIFT
+    (expresion (numero) numero-exp)
+    (expresion ("true") true-exp)
+    (expresion ("false") false-exp)
+    (expresion ("\'" texto "\'") texto-exp) ;; PHP
+    (expresion (identificador) id-exp)      ;; PHP
+    (expresion ("if" expresion expresion "else"  expresion ) condicional-exp) ;; JAVASCRIPT
+    (expresion ("const" identificador "=" expresion )constante-exp) ;; C
+    
+    (expresion ("static" identificador) crear-var-exp) ;; JAVA
+    (expresion ("init" "static" identificador  "=" expresion) iniciar-var-exp) ;; JAVA
+    (expresion ("@" "static" identificador "=" expresion) asignar-var-exp) ;; JAVA
+    
+    (expresion ("x32" "[" numero (arbno numero) "]") base-32-exp);; Guía del proyecto
+    (expresion ("x16" "[" numero (arbno numero) "]") base-16-exp);; Guía del proyecto
+    (expresion ("x8"  "[" numero (arbno numero) "]") base-8-exp);; Guía del proyecto
+       
+    (expresion ("("expresion primitive-binary expresion ")")op-binaria-exp)
+    (expresion (primitive-unaria expresion) op-unaria-exp)
 
+    (expresion ("func" "("(separated-list identificador ",") ")" "=>" "{" expresion "}") funcion-exp) ;; SWIFT 
+    (expresion ("import" expresion "(" (arbno expresion) ")") ejectuar-function-exp) ;; JAVASCRIPT
+    (expresion ("export" "func" identificador "("(separated-list identificador ",") ")"
+                          "=>" "{" expresion "}")funcion-rec-exp) ;; JAVASCRIPT SWIFT
+   
 
     ;; PRIMITIVAS UNARIAS
     (primitive-unaria ("!") negacion) ;; JAVASCRIPT
-    (primitive-unaria ("++") plus-one) ;; C++
-    (primitive-unaria ("--") minus-one) ;; C++
+    (primitive-unaria ("++") sumar-uno) ;; C++
+    (primitive-unaria ("--") restar-uno) ;; C++
+    
     (primitive-unaria ("strlen") longitud) ;; PHP
     (primitive-unaria ("concat") concatenar) ;; C#
+    
     (primitive-unaria ("isNull") es-vacia?) ;; JAVASCRIPT
     (primitive-unaria ("isList") es-lista?) ;; JAVASCRIPT
-    (primitive-unaria ("new List") new-list) ;; JAVASCRIPT, crea una lista vacia
-    (primitive-unaria ("pop") primer-elmt) ;; JAVASCRIPT, retorna el primer elemento
-    (primitive-unaria ("next") next-elmt) ;; Estructuras en C, retorna el resto
+    (primitive-unaria ("new List()") nueva-lista) ;; JAVASCRIPT, crea una lista vacia
+    (primitive-unaria ("pop") primer-item) ;; JAVASCRIPT, retorna el primer elemento
+    (primitive-unaria ("next") resto-items) ;; Estructuras en C, retorna el rest
+
     
-    ;; PRIMITIVAS BOOLEANAS
-    (primitive-bool (">") mayor) ;; JAVASCRIPT
-    (primitive-bool (">=") mayor-o-igual) ;; JAVASCRIPT
-    (primitive-bool ("<=") menor-o-igual) ;; JAVASCRIPT
-    (primitive-bool ("<") menor) ;; JAVASCRIPT
-    (primitive-bool ("==") igual) ;; JAVASCRIPT
-    (primitive-bool ("&&") and) ;; JAVASCRIPT
-    (primitive-bool ("||") or) ;; JAVASCRIPT
-    (primitive-bool ("!=") diferente) ;; JAVASCRIPT
+    ;; PRIMITIVAS BINARIAS
+    (primitive-binary (">") mayor) ;; JAVASCRIPT
+    (primitive-binary (">=") mayor-o-igual) ;; JAVASCRIPT
+    (primitive-binary ("<=") menor-o-igual) ;; JAVASCRIPT
+    (primitive-binary ("<") menor) ;; JAVASCRIPT
+    (primitive-binary ("==") igual) ;; JAVASCRIPT
+    (primitive-binary ("&&") and) ;; JAVASCRIPT
+    (primitive-binary ("||") or) ;; JAVASCRIPT
+    (primitive-binary ("!=") diferente) ;; JAVASCRIPT
    
-     ;; PRIMITIVAS BASE 10
-    (primitive-decimal ("+") add-decimal) ;; C++
-    (primitive-decimal ("-") sub-decimal) ;; C++
-    (primitive-decimal ("*") mult-decimal) ;; C++
-    (primitive-decimal ("/") div-decimal) ;; C++
-    (primitive-decimal ("mod") mod-decimal) ;; Visual Basic
+    (primitive-binary ("+") add-decimal) ;; C++
+    (primitive-binary ("-") sub-decimal) ;; C++
+    (primitive-binary ("*") mult-decimal) ;; C++
+    (primitive-binary ("/") div-decimal) ;; C++
+    (primitive-binary ("mod") mod-decimal) ;; Visual Basic
 
-     ;; PRIMITIVAS OTRAS BASES
-    (primitive-x-base ("+") add-x-base) ;; C++
-    (primitive-x-base ("-") sub-x-base) ;; C++
-    (primitive-x-base ("*") mult-x-base) ;; C++
-
-      ;; PRIMITIVAS LISTAS
-     (primitive-list ("join") join-list) ;; JAVASCRIPT
-     (primitive-list ("push") push-elmt) ;; JAVASCRIPT, append de dos listas
+    (primitive-binary ("join") join-list) ;; JAVASCRIPT
+    (primitive-binary ("push") push-elmt) ;; JAVASCRIPT, append de dos listas
+    
     
    ))
 
@@ -188,7 +187,7 @@
 
 ;*******************************************************************************************
 ;;PROMPT
-(define RUN
-  (sllgen:make-rep-loop  "Mixer-> "
+(define Mixer.exe
+  (sllgen:make-rep-loop  "@Mixer -> "
     (lambda (main) (eval-program main)) 
     (sllgen:make-stream-parser lexica gramatical)))
