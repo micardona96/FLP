@@ -1,7 +1,9 @@
 
 ### Programa
 
-:=  `< expresion >`  [ un-programa (  _**exp**_  ) ]
+:=  `< expresion >`  
+un-programa (  _**exp**_  )
+     
 
 ---
 ### Expresión
