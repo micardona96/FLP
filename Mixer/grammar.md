@@ -81,9 +81,9 @@
 
 :=  **+**  [ sumar ]
 
-:=  **-**  [ restar ]
+:=  -  [ restar ]
 
-:=  ** * **  [ multiplicar ]
+:=  *  [ multiplicar ]
 
 :=  **/**  [ dividir ]
 
@@ -93,7 +93,7 @@
 
 :=  **join**  [  join-lista ]
 
-:=  ** push **  [ push-lista ]
+:=  **push**  [ push-lista ]
 
 
 
