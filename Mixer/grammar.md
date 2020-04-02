@@ -1,46 +1,99 @@
+
 ### Programa
-:= `< expresion >`  [ un-programa ( ***exp*** ) ]
+
+:=  `< expresion >`  [ un-programa (  _**exp**_  ) ]
+
+---
+### Expresión
+
+:=  `< numero >`  [ número-exp (  _**num**_  ) ]
+
+:=  **'**  `< texto >`  **'**  [ texto-exp (  _**txt**_  ) ]
+
+:=  `< identificador >`  [id-exp (  _**id**_  ) ]
+
+:=  **if**  `< expresion >`  **{**  `< expresion >`  **} else {**  `< expresion >`  **}**  [ condicional-exp (  _**cond**_  _**true-exp**_  _**false-exp**_  ) ]
+
+:=  **const**  `< identificador >`  **=**  `< expresion >`  [ constante-exp (  _**id**_  _**exp**_  ) ]
+
+:=  **static**  `< identificador >`  [ crear-var-exp (  _**id**_) ]
+
+:=  **init static**  `< identificador >`  **=**  `< expresion >`  [ asignar-var-exp (  _**id**_  _**exp**_  )]
+
+:=  **x32**  **[**  `< numero * >`  **]**  [ base-32-exp (  _**nums**_  )]
+
+:=  **x16**  **[**  `< numero * >`  **]**  [ base-16-exp (  _**nums**_  )]
+
+:=  **x8**  **[**  `< numero * >`  **]**  [ base-8-exp (  _**nums**_  )]
+
+:=  **new list**  [ nueva-lista-exp]
+
+:=  **list**  **=**  **[**  `< expresion , * >`  **]**  [ iniciar-lista-exp (  _**exps**_  )]
+
+:=  **(**  `< expresion >`  `< primitiva-binaria >`  `< expresion >`  **)**  [ op-binaria-exp (  _**rand primitive-bin rator**_  )]
+
+:=  `< primitiva-unaria >`  **(**  `< expresion >`  **)**  [ op-unaria-exp (  _**primitive-un exp**_  )]
+
+:=  **func (**  `< identificador , * >`  **) => {**  `< expresion >`  **}**  [ función-exp (  _**ids**_  **exp**  )]
+
+:=  **import (**  `< expresion >`  **(**  `< expresion * >`  **)**  [ ejecutar-function-exp (  _**ids**_  **exp**  )]
+
+:=  **export func**  `< identificador >`  **(**  `< identificador , * >`  **) => {**  `< expresion >`  **}**  [ función-rec-exp (  **id**  _**ids**_  **exp**  )]
 
 
-### Expresion
-:= `< numero >`  [ número-exp ( ***num*** ) ]
+---
+### Primitiva-Unaria
 
-:= **'** `< texto >` **'**  [ texto-exp ( ***txt*** ) ]
+:=  **!**  [ negación ]
 
-:= `< identificador >`  [id-exp ( ***id*** ) ]
+:=  **++**  [ sumar-uno ]
 
-:= **if** `< expresion >` **{** `< expresion >` **} else {** `< expresion >` **}** [ condicional-exp ( ***cond*** ***true-exp*** ***false-exp*** ) ]
+:=  **--**  [ restar-uno ]
 
-:= **const** `< identificador >` **=**  `< expresion >`  [ constante-exp ( ***id*** ***exp*** ) ]
+:=  **strlen**  [ longitud ]
 
-:= **static** `< identificador >` [ crear-var-exp ( ***id***) ]
+:=  **isNull**  [ es-vacía? ]
 
-:= **init static** `< identificador >` **=**  `< expresion >` [ asignar-var-exp ( ***id*** ***exp*** )]
+:=  **isList**  [ es-lista? ]
 
-:= **x32** **[** `< numero * >` **]**   [ base-32-exp ( ***nums*** )]
+:=  **pop**  [ primer-ítem ]
 
-:= **x16** **[** `< numero * >` **]**   [ base-16-exp ( ***nums*** )]
+:=  **next**  [ resto-items ]
 
-:= **x8**   **[** `< numero * >` **]**   [ base-8-exp ( ***nums*** )]
+---
+### Primitiva-Binaria
 
-:= **new list** [ nueva-lista-exp]
+:=  **>**  [ mayor ]
 
-:= **list** **=** **[** `< expresion , * >` **]**   [ iniciar-lista-exp ( ***exps*** )]
+:=  **>=**  [ mayor-o-igual]
 
-:=  **(** `< expresion >`  `< primitiva-binaria >`   `< expresion >` **)**   [ op-binaria-exp ( ***rand primitive-bin rator*** )]
+:=  **<**  [ menor ]
 
-:=   `< primitiva-unaria >`   **(** `< expresion >` **)**   [ op-unaria-exp ( ***primitive-un exp*** )]
+:=  **<=**  [ menor-o-igual ]
 
-:= **func (**   `< identificador , * >` **) => {**  `< expresion >`  **}** [ función-exp ( ***ids*** **exp** )]
+:=  **==**  [ igual ]
 
-:= **import (**   `< expresion >` **(**  `< expresion * >`  **)** [ ejecutar-function-exp ( ***ids*** **exp** )]
+:=  **&&**  [ and ]
 
-:= **export func**   `< identificador >` **(** `< identificador , * >` **) => {**  `< expresion >`  **}** [ función-rec-exp ( **id** ***ids*** **exp** )]
+:=  **||**  [ or ]
 
+:=  **!=**  [ diferente ]
 
+:=  **+**  [ sumar ]
 
+:=  **-**  [ restar ]
 
+:=  ** * **  [ multiplicar ]
 
+:=  **/**  [ dividir ]
+
+:=  **mod**  [ módulo ]
+
+:=  **concat**  [ concatenar ]
+
+:=  **join**  [  join-lista ]
+
+:=  ** push **  [ push-lista ]
 
 
 
