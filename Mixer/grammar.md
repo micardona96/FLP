@@ -1,16 +1,20 @@
 
 ### Programa
 
-:=  `< expresion >`  
+:=  `< expresion >`  \
 un-programa (  _**exp**_  )
      
 
 ---
 ### Expresión
 
-:=  `< numero >`  [ número-exp (  _**num**_  ) ]
+:=  `< numero >` \
+número-exp (  _**num**_  )
 
-:=  **'**  `< texto >`  **'**  [ texto-exp (  _**txt**_  ) ]
+
+:=  **'**  `< texto >`  **'** \
+texto-exp (  _**txt**_  )
+
 
 :=  `< identificador >`  [id-exp (  _**id**_  ) ]
 
