@@ -1,15 +1,11 @@
 #lang eopl
 
-;; Created by Miguel Cardona on 02/04/2020.
-;; Copyright © 2020 Miguel Cardona. All rights reserved.
-
 #|
-
-### Programa
 
 < programa >
                 :=  < expresion > 
                 un-programa (exp)
+
 
 < expresion >
                 :=  < numero >
@@ -71,33 +67,36 @@
 
 
 < primitiva-unaria >
-    :=  !   [ negación ]
-    :=  ++  [ sumar-uno ]
-    :=  --  [ restar-uno ]
-    :=  strlen  [ longitud ]
-    :=  isNull  [ es-vacía? ]
-    :=  isList  [ es-lista? ]
-    :=  pop  [ primer-ítem ]
-    :=  next [ resto-items ]
+
+                :=  !   [ negación ]
+                :=  ++  [ sumar-uno ]
+                :=  --  [ restar-uno ]
+                :=  strlen  [ longitud ]
+                :=  isNull  [ es-vacía? ]
+                :=  isList  [ es-lista? ]
+                :=  pop  [ primer-ítem ]
+                :=  next [ resto-items ]
 
 
 < primitiva-binaria >
-    :=  >  [ mayor ]
-    :=  >= [ mayor-o-igual]
-    :=  <  [ menor ]
-    :=  <= [ menor-o-igual ]
-    :=  == [ igual ]
-    :=  && [ and ]
-    :=  || [ or ]
-    :=  != [ diferente ]
-    :=  +  [ sumar ]
-    :=  -  [ restar ]
-    :=  *  [ multiplicar ]
-    :=  /  [ dividir ]
-    :=  mod [ módulo ]
-    :=  concat [ concatenar ]
-    :=  join [  join-lista ]
-    :=  push [ push-lista ]
+
+                :=  >  [ mayor ]
+                :=  >= [ mayor-o-igual]
+                :=  <  [ menor ]
+                :=  <= [ menor-o-igual ]
+                :=  == [ igual ]
+                :=  && [ and ]
+                :=  || [ or ]
+                :=  != [ diferente ]
+                :=  +  [ sumar ]
+                :=  -  [ restar ]
+                :=  *  [ multiplicar ]
+                :=  /  [ dividir ]
+                :=  mod [ módulo ]
+                :=  concat [ concatenar ]
+                :=  join [  join-lista ]
+                :=  push [ push-lista ]
+
 
 |#
 
