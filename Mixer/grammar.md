@@ -10,7 +10,7 @@
 
 > :=  **'**  `< texto >`  **'** <br> texto-exp (  _**txt**_  )
 
-> :=  `< identificador >`  [id-exp (  _**id**_ )
+> :=  `< identificador >`  id-exp (  _**id**_ )
 
 > :=  **if**  `< expresion >`  **{**  `< expresion >`  **} else {**  `< expresion >`  **}**  <br> condicional-exp (  _**cond**_  _**true-exp**_  _**false-exp**_ )
 
