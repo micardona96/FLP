@@ -68,10 +68,26 @@
 
 < primitiva-unaria >
 
+        base-32
+                :=  ++32  [ sumar-uno-32 ]
+                :=  --32  [ restar-uno-32 ]
+        base-16
+                :=  ++16  [ sumar-uno-16 ]
+                :=  --16  [ restar-uno-16 ]
+
+         base-8
+                :=  ++8  [ sumar-uno-8 ]
+                :=  --8  [ restar-uno-8 ]
+
+       decimales
                 :=  !   [ negación ]
                 :=  ++  [ sumar-uno ]
                 :=  --  [ restar-uno ]
+
+        strings
                 :=  strlen  [ longitud ]
+
+         listas
                 :=  isNull  [ es-vacía? ]
                 :=  isList  [ es-lista? ]
                 :=  pop  [ primer-ítem ]
@@ -80,6 +96,22 @@
 
 < primitiva-binaria >
 
+         base-32
+                :=  +32  [ sumar-32 ]
+                :=  -32  [ restar-32 ]
+                :=  *32  [ multiplicar-32 ]
+
+         base-16
+                :=  +32  [ sumar-16 ]
+                :=  -32  [ restar-16 ]
+                :=  *32  [ multiplicar-16 ]
+
+          base-8
+                :=  +8  [ sumar-8 ]
+                :=  -8  [ restar-8 ]
+                :=  *8  [ multiplicar-8 ]
+
+       decimales
                 :=  >  [ mayor ]
                 :=  >= [ mayor-o-igual]
                 :=  <  [ menor ]
@@ -93,10 +125,13 @@
                 :=  *  [ multiplicar ]
                 :=  /  [ dividir ]
                 :=  mod [ módulo ]
-                :=  concat [ concatenar ]
-                :=  join [  join-lista ]
-                :=  push [ push-lista ]
 
+         strings
+                :=  concat [ concatenar ]
+
+          listas
+                :=  join [ join-lista ]
+                :=  push [ push-lista ]
 
 |#
 
@@ -145,21 +180,44 @@
     (expresion ("import" expresion "(" (arbno expresion) ")") ejecutar-function-exp) ;; JAVASCRIPT
     (expresion ("export" "func" identificador "("(separated-list identificador ",") ")"
                           "=>" "{" expresion "}")funcion-rec-exp) ;; JAVASCRIPT + SWIFT
-   
+
+
+    ;; PRIMITIVAS POR BASES
+    ;; X32
+    (primitiva-unaria ("++32") sumar-uno-32) ;; C++
+    (primitiva-unaria ("--32") restar-uno-32) ;; C++
+    (primitiva-binaria ("+32") sumar-32) ;; C++
+    (primitiva-binaria ("-32") restar-32) ;; C++
+    (primitiva-binaria ("*32") multiplicar-32) ;; C++
+    ;; X16
+    (primitiva-unaria ("++16") sumar-uno-16) ;; C++
+    (primitiva-unaria ("--16") restar-uno-16) ;; C++
+    (primitiva-binaria ("+16") sumar-16) ;; C++
+    (primitiva-binaria ("-16") restar-16) ;; C++
+    (primitiva-binaria ("*16") multiplicar-16) ;; C++
+
+    ;; X8
+    (primitiva-unaria ("++8") sumar-uno-8) ;; C++
+    (primitiva-unaria ("--8") restar-uno-8) ;; C++
+    (primitiva-binaria ("+8") sumar-8) ;; C++
+    (primitiva-binaria ("-8") restar-8) ;; C++
+    (primitiva-binaria ("*8") multiplicar-8) ;; C++
 
     ;; PRIMITIVAS UNARIAS
+    ;; DECIMALES
     (primitiva-unaria ("!") negacion) ;; JAVASCRIPT
     (primitiva-unaria ("++") sumar-uno) ;; C++
     (primitiva-unaria ("--") restar-uno) ;; C++
-    
+    ;; STRINGS
     (primitiva-unaria ("strlen") longitud) ;; PHP
-    
+    ;; LISTAS
     (primitiva-unaria ("isNull") es-vacia?) ;; JAVASCRIPT
     (primitiva-unaria ("isList") es-lista?) ;; JAVASCRIPT
     (primitiva-unaria ("pop") primer-item) ;; JAVASCRIPT
     (primitiva-unaria ("next") resto-items) ;; STRUCT IN C,
     
     ;; PRIMITIVAS BINARIAS
+    ;; DECIMALES
     (primitiva-binaria (">") mayor) ;; JAVASCRIPT
     (primitiva-binaria (">=") mayor-o-igual) ;; JAVASCRIPT
     (primitiva-binaria ("<") menor) ;; JAVASCRIPT
@@ -168,17 +226,16 @@
     (primitiva-binaria ("&&") and) ;; JAVASCRIPT
     (primitiva-binaria ("||") or) ;; JAVASCRIPT
     (primitiva-binaria ("!=") diferente) ;; JAVASCRIPT
-   
     (primitiva-binaria ("+") sumar) ;; C++
     (primitiva-binaria ("-") restar) ;; C++
     (primitiva-binaria ("*") multiplicar) ;; C++
     (primitiva-binaria ("/") dividir) ;; C++
     (primitiva-binaria ("mod") modulo) ;; Visual Basic
-
+    ;; STRINGS
     (primitiva-binaria ("concat") concatenar) ;; C#
-    
+     ;; LISTAS
     (primitiva-binaria ("join") join-lista) ;; JAVASCRIPT, eqv a cons en racket
-    (primitiva-binaria ("push") push-lista) ;; JAVASCRIPT
+    (primitiva-binaria ("push") push-lista) ;; JAVASCRIPT, eqv a eppend en racket
     
    ))
 
@@ -262,3 +319,54 @@
 (parser "('hola' concat 'adios')")
 (parser "(list = [1] join list = [2])")
 (parser "(list = [1,2] push list = [3,4])")
+
+
+(parser "export func $factorial ($x) => {
+           if ($x == 0){1} else {( $x * import $factorial (--($x)) )}}")
+
+(parser "export func $fibonacci ($x) => {
+           if (($x == 0) || ($x == 1)){1} else {
+                              ( import $fibonacci (--($x)) + import $fibonacci (($x - 2)) )}}")
+
+(parser "++32 (x32[1 2 3])")
+(parser "--16 (x16[1 2 3])")
+(parser "(x32[1 2 3] +32 x32[1 2 3])")
+(parser "(x32[1 2 3] *32 x32[1 2 3])")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
