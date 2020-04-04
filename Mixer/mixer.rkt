@@ -1,11 +1,12 @@
 #lang eopl
 
 #|
+    Created by Miguel Cardona on 04/04/20.
+    Copyright © 2020 Miguel Cardona 1628209. All rights reserved.
 
 < programa >
                 :=  < expresion > 
                 un-programa (exp)
-
 
 < expresion >
                 :=  < numero >
@@ -26,14 +27,8 @@
                 :=  if  < expresion >  {  < expresion >  } else {  < expresion >  }  
                 condicional-exp (cond  true-exp  false-exp)
 
-                :=  const  < identificador >  =  < expresion > 
-                constante-exp (id  exp)
-
-                :=  static  < identificador > 
-                crear-var-exp (id)
-
-                :=  init static  < identificador >  =  < expresion > 
-                asignar-var-exp (id  exp)
+                :=  private def ( < def-privada , * > ) {  < expresion >  }
+                definicion-exp (def-privadas body)
 
                 :=  x32  [  < numero * >  ]  
                 base-32-exp (nums)
@@ -44,11 +39,8 @@
                 :=  x8  [  < numero * >  ]  
                 base-8-exp (nums)
 
-                :=  new list  
-                nueva-lista-exp
-
-                :=  list  =  [  < expresion > , *  ] 
-                iniciar-lista-exp (exps)
+                := [  < expresion > , *  ] 
+                lista-exp (exps)
 
                 :=  (< expresion >  < primitiva-binaria >  < expresion > )  
                 op-binaria-exp (rand primitive-bin rator)
@@ -57,13 +49,25 @@
                 op-unaria-exp (primitive-un exp)
 
                 :=  func (< identificador > , * ) = {  < expresion >  }  
-                función-exp (ids  exp)
+                función-exp (ids exp)
 
                 :=  import (< expresion >  (< expresion > * )  
                 ejecutar-function-exp (ids  exp)
 
                 :=  export func  < identificador >  (< identificador > , * ) ={  < expresion >  }  
                 función-rec-exp (id  ids  exp)
+
+
+< def-privada >
+
+                :=  const  < identificador >  =  < expresion > 
+                constante (id  exp)
+
+                :=  static  < identificador > 
+                crear-var (id)
+
+                :=  init static  < identificador >  =  < expresion > 
+                asignar-var (id  exp)
 
 
 < primitiva-unaria >
@@ -161,18 +165,14 @@
     (expresion (identificador) id-exp)      ;; PHP
     
     (expresion ("if" expresion "{" expresion "}" "else" "{" expresion "}" ) condicional-exp) ;; JAVASCRIPT
-    (expresion ("const" identificador "=" expresion )constante-exp) ;; C
     
-    (expresion ("static" identificador) crear-var-exp) ;; JAVA
-    (expresion ("init" "static" identificador  "=" expresion) asignar-var-exp) ;; JAVA
+    (expresion ("private" "def" "("(separated-list def-privada ",")")" "{" expresion "}") definicion-exp) ;; PHYTON
     
     (expresion ("x32" "[" (arbno numero) "]") base-32-exp)
     (expresion ("x16" "[" (arbno numero) "]") base-16-exp)
     (expresion ("x8"  "[" (arbno numero) "]") base-8-exp) 
+    (expresion ("["(separated-list expresion ",") "]") lista-exp) ;; arrays in JAVASCRIPT
 
-    (expresion ("new" "list") nueva-lista-exp) ;; JAVASCRIPT
-    (expresion ("list" "="  "["(separated-list expresion ",") "]") iniciar-lista-exp) ;; JAVASCRIPT
-    
     (expresion ("("expresion primitiva-binaria expresion ")") op-binaria-exp) ;; JAVASCRIPT
     (expresion (primitiva-unaria "(" expresion ")") op-unaria-exp) ;; C++
 
@@ -180,8 +180,13 @@
     (expresion ("import" expresion "(" (arbno expresion) ")") ejecutar-function-exp) ;; JAVASCRIPT
     (expresion ("export" "func" identificador "("(separated-list identificador ",") ")"
                           "=>" "{" expresion "}")funcion-rec-exp) ;; JAVASCRIPT + SWIFT
+    
 
-
+    ;;DEFINICIONES EN AMBITOS PRIVADOS
+    (def-privada ("const" identificador "=" expresion )constante) ;; C 
+    (def-privada ("static" identificador) crear-var) ;; JAVA
+    (def-privada ("init" "static" identificador  "=" expresion) asignar-var) ;; JAVA
+    
     ;; PRIMITIVAS POR BASES
     ;; X32
     (primitiva-unaria ("++32") sumar-uno-32) ;; C++
@@ -279,17 +284,9 @@
 
 (parser "if ((1+2)>4) { true } else { false }")
 
-(parser "const $var = 5")
-
-(parser "static $var")
-(parser "init static $var = (1 + 3)")
-
 (parser "x32 [1 0 2 3]")
 (parser "x16 [1 0 2 3]")
 (parser "x8  [1 0 2 3]")
-
-(parser "new list")
-(parser "list = [1,0,2,3]")
 
 (parser "!(false)")
 (parser "++($var)")
@@ -317,9 +314,16 @@
 (parser "(true && true)")
 
 (parser "('hola' concat 'adios')")
-(parser "(list = [1] join list = [2])")
-(parser "(list = [1,2] push list = [3,4])")
+(parser "([1] join [2,6])")
+(parser "([1,2] push [3,4])")
+(parser "++32 (x32[1 2 3])")
+(parser "--16 (x16[1 2 3])")
+(parser "(x32[1 2 3] +32 x32[1 2 3])")
+(parser "(x32[1 2 3] *32 x32[1 2 3])")
 
+
+
+;; ++ COMPLEX 
 
 (parser "export func $factorial ($x) => {
            if ($x == 0){1} else {( $x * import $factorial (--($x)) )}}")
@@ -328,16 +332,10 @@
            if (($x == 0) || ($x == 1)){1} else {
                               ( import $fibonacci (--($x)) + import $fibonacci (($x - 2)) )}}")
 
-(parser "++32 (x32[1 2 3])")
-(parser "--16 (x16[1 2 3])")
-(parser "(x32[1 2 3] +32 x32[1 2 3])")
-(parser "(x32[1 2 3] *32 x32[1 2 3])")
+(parser "private def (static $s, init static $x = 3, const $y = 5){(($s+1) * $y)}")
 
-
-
-
-
-
+(parser "private def (static $XXX, init static $YYYY = 3, const $ZZZZZ = 5)
+           { private def (static $AAA, init static $BBBB = 3, const $CCCC = 5){(($s+1) * $y)}}")
 
 
 
