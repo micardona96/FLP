@@ -1,14 +1,9 @@
-# EOPL
-### ESSENTIALS OF PROGRAMMING LANGUAGES
-Developed by [Miguel Cardona](mailto:cardona.miguel@correounivalle.edu.co),
-This repository contains the codes related to different activities. for the development of a programming language using Scheme with the use of the SLLGEN library.
-
-* [Interfaces](TALLER2)
-* [Interpretador Basico](TALLER3)
-
----
 # Lenguaje Mixer 🚀 
-https://img.shields.io/github/size/micardona96/EOPL/Mixer/mixer.rkt
+![Size](https://img.shields.io/github/size/micardona96/EOPL/Mixer/mixer.rkt)
+![LICENSE](https://img.shields.io/github/license/micardona96/eopl)
+![LICENSE](aaaaaaaaa)
+![LICENSE](aaaaaaaaa)
+
 
 Mixer es un lenguaje de programación (no tipado) con ciertas caracterısticas de lenguajes de programacion declarativos e imperativos. Se propone para este proyecto que usted implemente un lenguaje de programacion interpretado para lo cual usted es libre de proponer una sintaxis inspirandose en mınimo 3 lenguajes de programacion existentes (e.g., C, C++, Java, Python, R, Scala, Octave, etc). La semantica del lenguaje estara determinada por las especificaciones en este proyecto.
 
@@ -157,6 +152,12 @@ El lenguaje debe incluir conceptos como: herencia,
 llamados a metodos de la superclase, polimorfismo.
 
 ---
+### ESSENTIALS OF PROGRAMMING LANGUAGES
+Developed by [Miguel Cardona](mailto:cardona.miguel@correounivalle.edu.co),
+This repository contains the codes related to different activities. for the development of a programming language using Scheme with the use of the SLLGEN library.
+
+* [Interfaces](TALLER2)
+* [Interpretador Basico](TALLER3)
 
 ### License
 * Proyecto final escrito por: [Robinson Duque](mailto:robinson.duque@correounivalle.edu.co) , Ph.D <br>
