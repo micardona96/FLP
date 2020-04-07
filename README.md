@@ -13,7 +13,7 @@ Mixer es un lenguaje de programación (no tipado) con ciertas caracterısticas d
 - [Mixer +](Mixer+)
 - [Mixer ++](Mixer++)
 
-### 🛰️ Valores
+#### 🛰️ Valores
 
 * **Valores denotados:**
 enteros, flotantes, numeros
@@ -22,10 +22,10 @@ en base 32, hexadecimales, octales, cadenas de caracteres, booleanos (true, fals
 * **Valores expresados:**
 enteros, flotantes, numeros en base 32, hexadecimales, octales, cadenas de caracteres, booleanos (true, false), procedimientos, listas.
 
-### 🎯 Aclaracion
+#### 🎯 Aclaracion
 Los numeros en una base distinta de 10, deberian representarse ası: [x32 0 23 12], [x16 4 1 0 7 14], [x8 2 1 4 0 7], teniendo en cuenta que el primer elemento de la lista indica la base del numero y el resto de la lista puede utilizar la representacion BIGNUM.
 
-### 💡 Sugerencia
+#### 💡 Sugerencia
 trabaje los valores enteros, flotantes
 desde la especificacion lexica. Implemente los n´umeros
 en base 32, hexadecimales, octales, cadenas de caracteres, booleanos (true, false) y procedimientos desde la
