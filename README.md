@@ -40,14 +40,14 @@ que desee implementar en su lenguaje
 
 * **Definiciones:** Este lenguaje permitira crear distintas definiciones:
 
-* **Constantes:** introduce una coleccion de
+  + **Constantes:** introduce una coleccion de
 identificadores no actualizables y sus valores
 iniciales. Una constante es de asignacion unica y debe ser declarada con un valor inicial,
 por ejemplo: Constante y = 9;. Para este
 caso y no podra ser modificada durante la
 ejecucion de un programa.
 
-* **Variables de asignacion unica:** introduce una coleccion de identificadores actualizables una unica vez. Una variable de asignacion unica puede ser declarada ası: Val z
+  + **Variables de asignacion unica:** introduce una coleccion de identificadores actualizables una unica vez. Una variable de asignacion unica puede ser declarada ası: Val z
 = 9, x = VALORMIXER;. Para este caso, z no
 podr´a ser modificada durante la ejecuci´on de
 un programa puesto que ya ha sido asignada. Sin embargo, x podra ser asignada una
