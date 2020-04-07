@@ -9,9 +9,10 @@
 Mixer es un lenguaje de programación (no tipado) con ciertas caracterısticas de lenguajes de programacion declarativos e imperativos. Se propone para este proyecto que usted implemente un lenguaje de programacion interpretado para lo cual usted es libre de proponer una sintaxis inspirandose en mınimo 3 lenguajes de programacion existentes (e.g., C, C++, Java, Python, R, Scala, Octave, etc). La semantica del lenguaje estara determinada por las especificaciones en este proyecto.
 
 
-- [Mixer](Mixer)
-- [Mixer +](Mixer+)
-- [Mixer ++](Mixer++)
+- [Mixer](#%EF%B8%8F-lenguaje-mixer)
+- [Mixer +](#%EF%B8%8F-lenguaje-mixer-1)
+- [Mixer ++](#%EF%B8%8F-lenguaje-mixer-2)
+- [Apéndice A](#%EF%B8%8F-essentials-of-programming-languages)
 
 #### 🛰️ Valores
 
