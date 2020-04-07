@@ -91,7 +91,7 @@ sera por valor y por referencia, el lenguaje debera
 permitir identificar de alguna manera la forma como se enviaran los argumentos.
 
 ---
-# 🖊️ Lenguaje Mixer+
+## 🖊️ Lenguaje Mixer+
 
 * **Variables de multiple asignacion (mutables):** introduce una coleccion de variables actualizables y sus valores iniciales. El lenguaje debera
 distinguir entre constantes, variables mutables y
@@ -123,7 +123,7 @@ reglas para todas las primitivas, condicionales, invocaci´on de procedimientos,
 los distintos tipos de variables.
 
 ---
-# 🖋️ Lenguaje Mixer++
+## 🖋️ Lenguaje Mixer++
 
 * **Declaracion de clases y metodos**
 
@@ -141,7 +141,7 @@ El lenguaje debe incluir conceptos como: herencia,
 llamados a metodos de la superclase, polimorfismo.
 
 ---
-# 🖍️ ESSENTIALS OF PROGRAMMING LANGUAGES
+## 🖍️ ESSENTIALS OF PROGRAMMING LANGUAGES
 Developed by [Miguel Cardona](mailto:cardona.miguel@correounivalle.edu.co),
 This repository contains the codes related to different activities. for the development of a programming language using Scheme with the use of the SLLGEN library.
 
