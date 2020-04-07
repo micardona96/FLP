@@ -1,8 +1,9 @@
 # Lenguaje Mixer 🚀 
 ![Size](https://img.shields.io/github/size/micardona96/EOPL/Mixer/mixer.rkt)
 ![LICENSE](https://img.shields.io/github/license/micardona96/eopl)
-![LICENSE](aaaaaaaaa)
-![LICENSE](aaaaaaaaa)
+![commit](https://img.shields.io/github/commit-activity/w/micardona96/EOPL)
+![last-commit](https://img.shields.io/github/last-commit/micardona96/eopl)
+![languages](https://img.shields.io/github/languages/top/micardona96/eopl)
 
 
 Mixer es un lenguaje de programación (no tipado) con ciertas caracterısticas de lenguajes de programacion declarativos e imperativos. Se propone para este proyecto que usted implemente un lenguaje de programacion interpretado para lo cual usted es libre de proponer una sintaxis inspirandose en mınimo 3 lenguajes de programacion existentes (e.g., C, C++, Java, Python, R, Scala, Octave, etc). La semantica del lenguaje estara determinada por las especificaciones en este proyecto.
