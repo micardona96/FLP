@@ -1,17 +1,14 @@
 # EOPL
 ### ESSENTIALS OF PROGRAMMING LANGUAGES
-Autor: Miguel Angel Cardona <br>
-Contact: cardona.miguel@correounivalle.edu.co
-
-Este repositorio contiene los codigos relativos a diferentes actividades. para el desarrollo de un lenguajke de progrmacion usando Scheme con el uso de la libreria SLLGEN.
+Developed by [Miguel Cardona](mailto:cardona.miguel@correounivalle.edu.co),
+This repository contains the codes related to different activities. for the development of a programming language using Scheme with the use of the SLLGEN library.
 
 * [Interfaces](TALLER2)
 * [Interpretador Basico](TALLER3)
 
-# Lenguaje Mixer
-Proyecto final escrito por: Robinson Duque, Ph.D <br>
-Contact: robinson.duque@correounivalle.edu.co
-
+---
+# Lenguaje Mixer 🚀 
+https://img.shields.io/github/size/micardona96/EOPL/Mixer/mixer.rkt
 
 Mixer es un lenguaje de programación (no tipado) con ciertas caracterısticas de lenguajes de programacion declarativos e imperativos. Se propone para este proyecto que usted implemente un lenguaje de programacion interpretado para lo cual usted es libre de proponer una sintaxis inspirandose en mınimo 3 lenguajes de programacion existentes (e.g., C, C++, Java, Python, R, Scala, Octave, etc). La semantica del lenguaje estara determinada por las especificaciones en este proyecto.
 
@@ -108,7 +105,7 @@ el lenguaje debe permitir la creacion/invocacion de procedimientos que pueden in
 sera por valor y por referencia, el lenguaje debera
 permitir identificar de alguna manera la forma como se enviaran los argumentos.
 
-
+---
 # Lenguaje Mixer +
 
 #### Variables de multiple asignacion (mutables):
@@ -141,7 +138,7 @@ solemanete chequeo de tipos (no es necesario implementar inferencia de tipos). S
 reglas para todas las primitivas, condicionales, invocaci´on de procedimientos, iteracion y manejo de
 los distintos tipos de variables.
 
-
+---
 # Lenguaje Mixer ++
 
 #### Declaracion de clases y metodos
@@ -158,3 +155,9 @@ asociados a objetos y obtener los valores asociados a los campos.
 el lenguaje debe permitir actualizar los campos asociados a un objeto
 El lenguaje debe incluir conceptos como: herencia,
 llamados a metodos de la superclase, polimorfismo.
+
+---
+
+### License
+* Proyecto final escrito por: [Robinson Duque](mailto:robinson.duque@correounivalle.edu.co) , Ph.D <br>
+* [MIT](LICENSE) Copyright (c) 2020 micardona96
