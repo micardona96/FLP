@@ -337,34 +337,18 @@
 (parser "private def (static $XXX, init static $YYYY = 3, const $ZZZZZ = 5)
            { private def (static $AAA, init static $BBBB = 3, const $CCCC = 5){(($s+1) * $y)}}")
 
+(parser "private def (init static $x = func ($x) => {++($x)})
+{import $x (5)}")
+
+(parser "import func ($y) => {++($y)} (5)")
 
 
+;; VALIDACION 2
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+(parser "private def (init static $VarX = 3,
+                      const $Fact = export func $factorial ($x) => {
+                          if ($x == 0){ 1 } else { ( $x * import $factorial (--($x)) )}})
+                     {import $fact ($VarX)}")
 
 
 
