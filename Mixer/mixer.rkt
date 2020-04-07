@@ -344,11 +344,18 @@
 
 
 ;; VALIDACION 2
+;; BASIC
+(parser "import export func $factorial ($x) => {
+           if ($x == 0){1} else {( $x * import $factorial (--($x)) )}} (3)")
 
+;;ADVANCED
 (parser "private def (init static $VarX = 3,
                       const $Fact = export func $factorial ($x) => {
                           if ($x == 0){ 1 } else { ( $x * import $factorial (--($x)) )}})
-                     {import $fact ($VarX)}")
+                     {import $Fact ($VarX)}")
+
+
+
 
 
 
