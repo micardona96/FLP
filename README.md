@@ -1,7 +1,7 @@
 #  🚀  Lenguaje Mixer
 ![Size](https://img.shields.io/github/size/micardona96/EOPL/Mixer/mixer.rkt)
 ![LICENSE](https://img.shields.io/github/license/micardona96/eopl)
-![commits](https://img.shields.io/github/commit-activity/y/micardona96/EOPL)
+![commits](https://img.shields.io/github/commit-activity/m/micardona96/EOPL)
 ![last-commit](https://img.shields.io/github/last-commit/micardona96/eopl)
 ![languages](https://img.shields.io/github/languages/top/micardona96/eopl)
 
