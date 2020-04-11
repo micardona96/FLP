@@ -94,8 +94,8 @@
     (primitiva-binaria ("<") menor) ;; JAVASCRIPT
     (primitiva-binaria ("<=") menor-o-igual) ;; JAVASCRIPT
     (primitiva-binaria ("==") igual) ;; JAVASCRIPT
-    (primitiva-binaria ("&&") and) ;; JAVASCRIPT
-    (primitiva-binaria ("||") or) ;; JAVASCRIPT
+    (primitiva-binaria ("&&") and-operator) ;; JAVASCRIPT
+    (primitiva-binaria ("||") or-operator) ;; JAVASCRIPT
     (primitiva-binaria ("!=") diferente) ;; JAVASCRIPT
     (primitiva-binaria ("+") sumar) ;; C++
     (primitiva-binaria ("-") restar) ;; C++
@@ -125,20 +125,221 @@
     (sllgen:make-stream-parser lexica gramatical)))
 
 ;*******************************************************************************************
+;; AMBIENTES
+(define scheme-value? (lambda (v) #t))
+
+(define-datatype env env?
+  (empty-env)
+  (extended-env (syms (list-of symbol?))
+                (vals (list-of scheme-value?))
+                (env env?))
+  
+(extended-env-rec
+  (proc-names (list-of symbol?))
+  (syms (list-of (list-of symbol?)))
+  (vals (list-of scheme-value?))
+  (env env?)))
+
+(define env0 (empty-env))
+
+(define-datatype closure-type closure-type?
+  (closure
+   (ids (list-of symbol?))
+   (exp expresion?)
+   (env env?)))
+
+(define apply-procedure
+  (lambda (proc args)
+    (cases closure-type proc
+      (closure (ids exp env) (eval-expresion exp (extended-env ids args env))))))
+
+(define search-var-const
+  (lambda (id ambiente)
+    (cases env ambiente
+      (empty-env ()(eopl:error 'buscar-variable "Error, la variable no existe ~s" id))
+      (extended-env (syms vals ambiente-old)
+                           (let ((index (list-find-position id syms)))
+                             (if (number? index)
+                                 (list-ref vals index)
+                                 (search-var-const id ambiente-old))))
+      (extended-env-rec (proc-names symss vals ambiente-old)
+                           (let ((index (list-find-position id proc-names)))
+                             (if (number? index)
+                                 (closure (list-ref symss index)
+                                          (list-ref vals index)
+                                           ambiente)
+                                 (search-var-const id ambiente-old)))))))
+
+(define list-find-position
+  (lambda (id lista)
+    (list-index (lambda (x) (eqv? x id)) lista)))
+
+
+(define list-index
+  (lambda (func ls)
+    (cond
+      ((null? ls) #f)
+      ((func (car ls)) 0)
+      (else (let ((list-index-r (list-index func (cdr ls))))
+              (if (number? list-index-r)
+                (+ list-index-r 1)
+                #f))))))
+
+;*******************************************************************************************
 ;; EVAL-PROGRAM
 (define eval-program
   (lambda (pgm)
    (cases programa pgm
-     (un-programa (exp) (eval-expresion exp)))))
+     (un-programa (exp) (eval-expresion exp env0)))))
 
 ;*******************************************************************************************
 ;; EVAL-EXPORESION
 (define eval-expresion
-  (lambda (exp)
+  (lambda (exp env)
    (cases expresion exp
      (numero-exp (num) num)
+     (true-exp () #t)
+     (false-exp () #f)
+     (texto-exp (txt) txt)
+     (id-exp (id) (search-var-const id env))
+     (condicional-exp (condition true-exp false-exp)
+                      (if (eval-expresion condition env)
+                          (eval-expresion true-exp env)
+                          (eval-expresion false-exp env)))
+    (definicion-exp (def-privada-list body) ;; BASICO
+                        (let ((ids (extract-id-map def-privada-list))
+                              (vals (extract-val-map def-privada-list env)))
+                          (eval-expresion body (extended-env ids vals env))))
+
+     ;; START bignum and list
+     
+     ;; END
+     (op-binaria-exp (exp1 operator exp2)(eval-pri-bin operator
+                                                       (eval-expresion exp1 env)
+                                                       (eval-expresion exp2 env)))    
      (else 'falta-implementar)
+     
      )))
+
+;*******************************************************************************************
+;; EVAL PRIMITVE BINARY
+(define eval-pri-bin
+  (lambda (operator val1 val2)
+    (cases primitiva-binaria operator
+       ;;BASICAS
+      (mayor          () (> val1 val2))
+      (mayor-o-igual  () (>= val1 val2))
+      (menor          () (< val1 val2))
+      (menor-o-igual  () (<= val1 val2))
+      (igual          () (equal? val1 val2))
+      (and-operator   () (and val1 val2))
+      (or-operator    () (or val1 val2))
+      (diferente      () (not (equal? val1 val2)))
+      (sumar          () (+ val1 val2))
+      (restar         () (- val1 val2))
+      (multiplicar    () (* val1 val2))
+      (dividir        () (/ val1 val2))
+      (modulo         () (remainder val1 val2))
+      ;; STRING
+      (concatenar     () (string-append val1 val2))
+      ;; LISTAS
+      (join-lista     () (cons val1 val2))
+      (push-lista     () (append val1 val2))
+      ;;X32
+      (sumar-32       () (+ val1 val2))
+      (restar-32      () (- val1 val2))
+      (multiplicar-32 () (* val1 val2))
+       ;;X16
+      (sumar-16       () (+ val1 val2))
+      (restar-16      () (- val1 val2))
+      (multiplicar-16 () (* val1 val2))
+      ;;X8
+      (sumar-8        () (+ val1 val2))
+      (restar-8       () (- val1 val2))
+      (multiplicar-8  () (* val1 val2)))))
+
+
+;*******************************************************************************************
+;; EVAL PRIMITVE BINARY
+(define eval-pri-un
+  (lambda (operator val)
+    (cases primitiva-unaria operator
+      ;;BASICAS
+      (negacion      () (not val))
+      (sumar-uno     () (+ val 1))
+      (restar-uno    () (+ val 1))
+      ;;STRING
+      (longitud      () (string-length val))
+      ;;LISTAS
+      (es-vacia?     () (null? val))
+      (es-lista?     () (list? val))
+      (primer-item   () (car val))
+      (resto-items   () (cdr val))
+      ;;X32
+      (sumar-uno-32  () (+ val 1))
+      (restar-uno-32 () (- val 1))
+       ;;X16
+      (sumar-uno-16  () (+ val 1))
+      (restar-uno-16 () (- val 1))
+      ;;X8
+      (sumar-uno-8   () (+ val 1))
+      (restar-uno-8  () (- val 1)))))
+      
+     
+
+;*******************************************************************************************
+;; EXTRACTORES DEF-PRIVATE
+(define  extract-id-map
+  (lambda (def-privada-list)
+    (map (lambda (def-privada) (extract-id def-privada)) def-privada-list)))
+
+;;extrea es el id de un def-private type
+(define extract-id
+  (lambda (vars)
+    (cases def-privada vars
+    (constante (id exp) id)
+    (crear-var (id) id)
+    (asignar-var (id exp) id))))
+
+(define  extract-val-map
+  (lambda (def-privada-list env)
+    (map (lambda (def-privada) (eval-expresion (extract-val def-privada) env)) def-privada-list)))
+
+;;extrea es el valor de un def-private type
+(define extract-val
+  (lambda (vars)
+    (cases def-privada vars
+    (constante (id exp) exp)
+    (crear-var (id) 'null)
+    (asignar-var (id exp) exp))))
+
+
+;*******************************************************************************************
+;; AUTONRUN
+;;(eval-program (parser "true"))
+;;(eval-program (parser "private def (const $a = 3, const $b = 5){if true {$a} else {$b}}"))
+;;(eval-program (parser "('hola' concat 'adios')"))
+(mixer.exe)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
