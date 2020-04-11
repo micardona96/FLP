@@ -20,16 +20,16 @@
 ;; GRAMATICA
 (define gramatical
   '(
-    ;; PROGRAMA
+;*******************************************************************************************
+;; PROGRAMA
     (programa (expresion) un-programa)
-
-    ;; EXPRESIONES
+;*******************************************************************************************
+;; EXPRESIONES
     (expresion (numero) numero-exp)
     (expresion ("true") true-exp)
     (expresion ("false") false-exp)
     (expresion ("\'" texto "\'") texto-exp) ;; PHP
     (expresion (identificador) id-exp)      ;; PHP
-    
     (expresion ("if" expresion "{" expresion "}" "else" "{" expresion "}" ) condicional-exp) ;; JAVASCRIPT
     
     (expresion ("private" "def" "("(separated-list def-privada ",")")" "{" expresion "}") definicion-exp) ;; PHYTON
@@ -47,48 +47,48 @@
     (expresion ("export" "func" identificador "("(separated-list identificador ",") ")"
                           "=>" "{" expresion "}")funcion-rec-exp) ;; JAVASCRIPT + SWIFT
     
-
-    ;;DEFINICIONES EN AMBITOS PRIVADOS
+;*******************************************************************************************
+;;DEFINICIONES EN AMBITOS PRIVADOS
     (def-privada ("const" identificador "=" expresion )constante) ;; C 
     (def-privada ("static" identificador) crear-var) ;; JAVA
     (def-privada ("init" "static" identificador  "=" expresion) asignar-var) ;; JAVA
     
-    ;; PRIMITIVAS POR BASES
-    ;; X32
-    (primitiva-unaria ("++32") sumar-uno-32) ;; C++
-    (primitiva-unaria ("--32") restar-uno-32) ;; C++
+;*******************************************************************************************   
+;; PRIMITIVAS POR BASES
+    (primitiva-unaria  ("++32") sumar-uno-32) ;; C++
+    (primitiva-unaria  ("--32") restar-uno-32) ;; C++
+    (primitiva-unaria  ("cast x32") to-decimal-32) ;; C++
     (primitiva-binaria ("+32") sumar-32) ;; C++
     (primitiva-binaria ("-32") restar-32) ;; C++
     (primitiva-binaria ("*32") multiplicar-32) ;; C++
     ;; X16
-    (primitiva-unaria ("++16") sumar-uno-16) ;; C++
-    (primitiva-unaria ("--16") restar-uno-16) ;; C++
+    (primitiva-unaria  ("++16") sumar-uno-16) ;; C++
+    (primitiva-unaria  ("--16") restar-uno-16) ;; C++
+    (primitiva-unaria  ("cast x16") to-decimal-16) ;; C++
     (primitiva-binaria ("+16") sumar-16) ;; C++
     (primitiva-binaria ("-16") restar-16) ;; C++
     (primitiva-binaria ("*16") multiplicar-16) ;; C++
-
     ;; X8
-    (primitiva-unaria ("++8") sumar-uno-8) ;; C++
-    (primitiva-unaria ("--8") restar-uno-8) ;; C++
+    (primitiva-unaria  ("++8") sumar-uno-8) ;; C++
+    (primitiva-unaria  ("--8") restar-uno-8) ;; C++
+    (primitiva-unaria  ("cast x8") to-decimal-8) ;; C++    
     (primitiva-binaria ("+8") sumar-8) ;; C++
     (primitiva-binaria ("-8") restar-8) ;; C++
     (primitiva-binaria ("*8") multiplicar-8) ;; C++
-
-    ;; PRIMITIVAS UNARIAS
-    ;; DECIMALES
+    
+;*******************************************************************************************
+;; PRIMITIVAS UNARIAS   
     (primitiva-unaria ("!") negacion) ;; JAVASCRIPT
     (primitiva-unaria ("++") sumar-uno) ;; C++
     (primitiva-unaria ("--") restar-uno) ;; C++
-    ;; STRINGS
     (primitiva-unaria ("strlen") longitud) ;; PHP
-    ;; LISTAS
     (primitiva-unaria ("isNull") es-vacia?) ;; JAVASCRIPT
     (primitiva-unaria ("isList") es-lista?) ;; JAVASCRIPT
     (primitiva-unaria ("pop") primer-item) ;; JAVASCRIPT
     (primitiva-unaria ("next") resto-items) ;; STRUCT IN C,
-    
-    ;; PRIMITIVAS BINARIAS
-    ;; DECIMALES
+
+;*******************************************************************************************
+;; PRIMITIVAS BINARIAS
     (primitiva-binaria (">") mayor) ;; JAVASCRIPT
     (primitiva-binaria (">=") mayor-o-igual) ;; JAVASCRIPT
     (primitiva-binaria ("<") menor) ;; JAVASCRIPT
@@ -102,9 +102,7 @@
     (primitiva-binaria ("*") multiplicar) ;; C++
     (primitiva-binaria ("/") dividir) ;; C++
     (primitiva-binaria ("mod") modulo) ;; Visual Basic
-    ;; STRINGS
     (primitiva-binaria ("concat") concatenar) ;; C#
-     ;; LISTAS
     (primitiva-binaria ("join") join-lista) ;; JAVASCRIPT, eqv a cons en racket
     (primitiva-binaria ("push") push-lista) ;; JAVASCRIPT, eqv a eppend en racket
     
@@ -211,15 +209,18 @@
                               (vals (extract-val-map def-privada-list env)))
                           (eval-expresion body (extended-env ids vals env))))
 
-     ;; START bignum and list
-     
-     ;; END
+     (base-32-exp (list-nums) list-nums)
+     (base-16-exp (list-nums) list-nums)
+     (base-8-exp (list-nums) list-nums)
+     (lista-exp (list-exps) (extract-list-map list-exps env))
+
      (op-binaria-exp (exp1 operator exp2)(eval-pri-bin operator
                                                        (eval-expresion exp1 env)
-                                                       (eval-expresion exp2 env)))    
-     (else 'falta-implementar)
-     
-     )))
+                                                       (eval-expresion exp2 env)))
+     (op-unaria-exp (operator exp)(eval-pri-un operator
+                                                       (eval-expresion exp env)))    
+     (else 'falta-implementar))))
+
 
 ;*******************************************************************************************
 ;; EVAL PRIMITVE BINARY
@@ -246,17 +247,17 @@
       (join-lista     () (cons val1 val2))
       (push-lista     () (append val1 val2))
       ;;X32
-      (sumar-32       () (+ val1 val2))
-      (restar-32      () (- val1 val2))
-      (multiplicar-32 () (* val1 val2))
+      (sumar-32       () (suma-bignum val1 val2 32))
+      (restar-32      () (resta-bignum val1 val2 32))
+      (multiplicar-32 () (multiplicacion-bignum val1 val2 32))
        ;;X16
-      (sumar-16       () (+ val1 val2))
-      (restar-16      () (- val1 val2))
-      (multiplicar-16 () (* val1 val2))
+      (sumar-16       () (suma-bignum val1 val2 16))
+      (restar-16      () (resta-bignum val1 val2 16))
+      (multiplicar-16 () (multiplicacion-bignum val1 val2 16))
       ;;X8
-      (sumar-8        () (+ val1 val2))
-      (restar-8       () (- val1 val2))
-      (multiplicar-8  () (* val1 val2)))))
+      (sumar-8        () (suma-bignum val1 val2 8))
+      (restar-8       () (resta-bignum val1 val2 8))
+      (multiplicar-8  () (multiplicacion-bignum val1 val2 8)))))
 
 
 ;*******************************************************************************************
@@ -276,18 +277,24 @@
       (primer-item   () (car val))
       (resto-items   () (cdr val))
       ;;X32
-      (sumar-uno-32  () (+ val 1))
-      (restar-uno-32 () (- val 1))
+      (sumar-uno-32  () (successor val 32))
+      (restar-uno-32 () (predecessor val 32))
+      (to-decimal-32 () (to-decimal val 32))
        ;;X16
-      (sumar-uno-16  () (+ val 1))
-      (restar-uno-16 () (- val 1))
+      (sumar-uno-16  () (successor val 16))
+      (restar-uno-16 () (predecessor val 16))
+      (to-decimal-16 () (to-decimal val 16))
       ;;X8
-      (sumar-uno-8   () (+ val 1))
-      (restar-uno-8  () (- val 1)))))
+      (sumar-uno-8   () (successor val 8))
+      (restar-uno-8  () (predecessor val 8))
+      (to-decimal-8  () (to-decimal val 8)))))  
       
-     
-
 ;*******************************************************************************************
+;; EXTRACTORES LIST
+(define extract-list-map
+  (lambda (list-without-eval env)
+    (map (lambda (exp) (eval-expresion exp env)) list-without-eval)))
+
 ;; EXTRACTORES DEF-PRIVATE
 (define  extract-id-map
   (lambda (def-privada-list)
@@ -315,31 +322,59 @@
 
 
 ;*******************************************************************************************
+;; BIGNUM
+
+(define zero-bignum
+  (lambda () '()))
+
+(define is-zero-bignum?
+  (lambda (n) (null? n)))
+
+(define successor
+  (lambda (n base)
+    (cond
+      [(null? n ) '(1)]
+      [(= (car n) (- base 1)) (cons 0 (successor (cdr n) base))]
+      [else (cons (+ (car n ) 1) (cdr n))])))
+
+(define predecessor
+  (lambda (n base)
+    (cond
+      [(equal? n '(1)) '()]
+      [(= (car n) 0) (cons (- base 1) (predecessor (cdr n) base))]
+      [else (cons (- (car n ) 1) (cdr n))])))
+                      
+(define suma-bignum
+  (lambda (x y base)
+    (if (is-zero-bignum? x) y
+        (successor (suma-bignum (predecessor x base) y base ) base))))
+
+(define resta-bignum
+  (lambda (x y base)
+    (if (is-zero-bignum? y) x
+        (predecessor (resta-bignum  x (predecessor y base ) base) base))))
+
+(define multiplicacion-bignum
+  (lambda (x y base)
+    (if (is-zero-bignum? x)(zero-bignum)
+        (suma-bignum (multiplicacion-bignum (predecessor x base) y base) y base))))
+
+
+;; Funciona auxiliar para calcular en decimal un numero en otra base
+(define to-decimal
+  (lambda (n base)
+    (to-decimal-aux n base 0)))
+
+(define to-decimal-aux
+  (lambda (n base index)
+    (cond
+      [(null? n )0]
+      [else (+ (*(expt base index) (car n)) (to-decimal-aux (cdr n) base (+ index 1)))])))
+
+
+;*******************************************************************************************
 ;; AUTONRUN
-;;(eval-program (parser "true"))
-;;(eval-program (parser "private def (const $a = 3, const $b = 5){if true {$a} else {$b}}"))
-;;(eval-program (parser "('hola' concat 'adios')"))
 (mixer.exe)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
