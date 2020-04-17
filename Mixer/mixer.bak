@@ -32,7 +32,7 @@
     (expresion (identificador) id-exp)      ;; PHP
     (expresion ("if" expresion "{" expresion "}" "else" "{" expresion "}" ) condicional-exp) ;; JAVASCRIPT
     
-    (expresion ("private" "def" "("(separated-list expresion ",")")" "{" expresion "}") definicion-exp) ;; PHYTON
+    (expresion ("private" "def" "("(separated-list def-privada ",")")" "{" expresion "}") definicion-exp) ;; PHYTON
     
     (expresion ("x32" "[" (arbno numero) "]") base-32-exp)
     (expresion ("x16" "[" (arbno numero) "]") base-16-exp)
@@ -43,17 +43,15 @@
     (expresion (primitiva-unaria "(" expresion ")") op-unaria-exp) ;; C++
 
     (expresion ("func" "("(separated-list identificador ",") ")" "=>" "{" expresion "}") funcion-exp) ;; SWIFT 
-    (expresion ("import" expresion "(" (separated-list expresion ",") ")") ejecutar-function-exp) ;; JAVASCRIPT
+    (expresion ("import" expresion "(" (arbno expresion) ")") ejecutar-function-exp) ;; JAVASCRIPT
+    (expresion ("export" "func" identificador "("(separated-list identificador ",") ")"
+                          "=>" "{" expresion "}")funcion-rec-exp) ;; JAVASCRIPT + SWIFT
     
-    (expresion ("export" "func" (arbno identificador "(" (separated-list identificador ",") ")"
-                                       "=>" "{"expresion"}") "(" expresion ")") funcion-rec-exp) ;; JAVASCRIPT + SWIFT
-        
-
 ;*******************************************************************************************
-;;  DEFINICIONES EN AMBITOS PRIVADOS
-    (expresion ("const" identificador "=" expresion )constante-exp) ;; C 
-    (expresion ("static" identificador) crear-var-exp) ;; JAVA
-    (expresion ("init" "static" identificador  "=" expresion) asignar-var-exp) ;; JAVA
+;;DEFINICIONES EN AMBITOS PRIVADOS
+    (def-privada ("const" identificador "=" expresion )constante) ;; C 
+    (def-privada ("static" identificador) crear-var) ;; JAVA
+    (def-privada ("init" "static" identificador  "=" expresion) asignar-var) ;; JAVA
     
 ;*******************************************************************************************   
 ;; PRIMITIVAS POR BASES
@@ -118,6 +116,74 @@
 (define parser (sllgen:make-string-parser lexica gramatical))
 
 ;*******************************************************************************************
+;; PROMPT
+(define mixer.exe
+  (sllgen:make-rep-loop  "@Mixer -> "
+    (lambda (programa) (eval-program programa)) 
+    (sllgen:make-stream-parser lexica gramatical)))
+
+;*******************************************************************************************
+;; AMBIENTES
+(define scheme-value? (lambda (v) #t))
+
+(define-datatype env env?
+  (empty-env)
+  (extended-env (syms (list-of symbol?))
+                (vals (list-of scheme-value?))
+                (env env?))
+  
+(extended-env-rec
+  (proc-names (list-of symbol?))
+  (syms (list-of (list-of symbol?)))
+  (vals (list-of scheme-value?))
+  (env env?)))
+
+(define env0 (empty-env))
+
+(define-datatype closure-type closure-type?
+  (closure
+   (ids (list-of symbol?))
+   (exp expresion?)
+   (env env?)))
+
+(define apply-procedure
+  (lambda (proc args)
+    (cases closure-type proc
+      (closure (ids exp env) (eval-expresion exp (extended-env ids args env))))))
+
+(define search-var-const
+  (lambda (id ambiente)
+    (cases env ambiente
+      (empty-env ()(eopl:error 'buscar-variable "Error, la variable no existe ~s" id))
+      (extended-env (syms vals ambiente-old)
+                           (let ((index (list-find-position id syms)))
+                             (if (number? index)
+                                 (list-ref vals index)
+                                 (search-var-const id ambiente-old))))
+      (extended-env-rec (proc-names symss vals ambiente-old)
+                           (let ((index (list-find-position id proc-names)))
+                             (if (number? index)
+                                 (closure (list-ref symss index)
+                                          (list-ref vals index)
+                                           ambiente)
+                                 (search-var-const id ambiente-old)))))))
+
+(define list-find-position
+  (lambda (id lista)
+    (list-index (lambda (x) (eqv? x id)) lista)))
+
+
+(define list-index
+  (lambda (func ls)
+    (cond
+      ((null? ls) #f)
+      ((func (car ls)) 0)
+      (else (let ((list-index-r (list-index func (cdr ls))))
+              (if (number? list-index-r)
+                (+ list-index-r 1)
+                #f))))))
+
+;*******************************************************************************************
 ;; EVAL-PROGRAM
 (define eval-program
   (lambda (pgm)
@@ -133,31 +199,15 @@
      (true-exp () #t)
      (false-exp () #f)
      (texto-exp (txt) txt)
-     (id-exp (id) (apply-env env id))
+     (id-exp (id) (search-var-const id env))
      (condicional-exp (condition true-exp false-exp)
                       (if (eval-expresion condition env)
                           (eval-expresion true-exp env)
                           (eval-expresion false-exp env)))
-     
-     (definicion-exp (exps body)
-     (let ((ids (map-extract-ids (eval-rands exps env)))
-           (vals (map-extract-val (eval-rands exps env))))
-      (eval-expresion body (extended-env ids vals env))))
-     
-;*******************************************************************************************
-;; EXP PRIVATE
-     (constante-exp (id val)
-               (let ((arg (eval-rand val env)))
-                 (extended-env (list id) (list arg) env)))
-
-     (crear-var-exp (id)(extended-env (list id) (list "undefined") env))
-                  
-     (asignar-var-exp (id val)
-               (let ((arg (eval-rand val env)))
-                 (extended-env (list id) (list arg) env)))
-
-     
-;*******************************************************************************************
+    (definicion-exp (def-privada-list body) ;; BASICO
+                        (let ((ids (extract-id-map def-privada-list))
+                              (vals (extract-val-map def-privada-list env)))
+                          (eval-expresion body (extended-env ids vals env))))
 
      (base-32-exp (list-nums) list-nums)
      (base-16-exp (list-nums) list-nums)
@@ -168,23 +218,8 @@
                                                        (eval-expresion exp1 env)
                                                        (eval-expresion exp2 env)))
      (op-unaria-exp (operator exp)(eval-pri-un operator
-                                                       (eval-expresion exp env)))
-
-     (funcion-exp (ids body)
-                (closure ids body env))
-
-     (ejecutar-function-exp (rator rands)
-               (let ((proc (eval-expresion rator env))
-                     (args (eval-rands rands env)))
-                (if (closure-type? proc)
-                    (apply-procedure proc args)
-                    (eopl:error 'eval-expression "Error, no es un procedimiento" proc))))
-
-     (funcion-rec-exp (names idss bodies letrec-body)
-                  (eval-expresion letrec-body
-                                   (extended-env-rec names idss bodies env)))
-     
-     (else #f))))
+                                                       (eval-expresion exp env)))    
+     (else 'falta-implementar))))
 
 
 ;*******************************************************************************************
@@ -233,7 +268,7 @@
       ;;BASICAS
       (negacion      () (not val))
       (sumar-uno     () (+ val 1))
-      (restar-uno    () (- val 1))
+      (restar-uno    () (+ val 1))
       ;;STRING
       (longitud      () (string-length val))
       ;;LISTAS
@@ -260,35 +295,31 @@
   (lambda (list-without-eval env)
     (map (lambda (exp) (eval-expresion exp env)) list-without-eval)))
 
-(define eval-rands
-  (lambda (rands env)
-    (map (lambda (x) (eval-rand x env)) rands)))
+;; EXTRACTORES DEF-PRIVATE
+(define  extract-id-map
+  (lambda (def-privada-list)
+    (map (lambda (def-privada) (extract-id def-privada)) def-privada-list)))
 
-(define eval-rand
-  (lambda (rand env)
-    (eval-expresion rand env)))
-
-;; EXTRACT
-
-(define map-extract-ids
-  (lambda (ext-envs)
-    (map (lambda (x) (extract-id x)) ext-envs)))
-
+;;extrea es el id de un def-private type
 (define extract-id
-  (lambda (ext-env)
-    (cases env ext-env
-    (extend-env (syms vec ammbiente) (car syms))
-    (else 'error ))))
+  (lambda (vars)
+    (cases def-privada vars
+    (constante (id exp) id)
+    (crear-var (id) id)
+    (asignar-var (id exp) id))))
 
-(define map-extract-val
-  (lambda (ext-envs)
-    (map (lambda (x) (extract-val x)) ext-envs)))
+(define  extract-val-map
+  (lambda (def-privada-list env)
+    (map (lambda (def-privada) (eval-expresion (extract-val def-privada) env)) def-privada-list)))
 
+;;extrea es el valor de un def-private type
 (define extract-val
-  (lambda (ext-env)
-    (cases env ext-env
-    (extend-env (syms vec ammbiente) (vector-ref vec 0))
-    (else 'error ))))
+  (lambda (vars)
+    (cases def-privada vars
+    (constante (id exp) exp)
+    (crear-var (id) 'null)
+    (asignar-var (id exp) exp))))
+
 
 ;*******************************************************************************************
 ;; BIGNUM
@@ -340,120 +371,10 @@
       [(null? n )0]
       [else (+ (*(expt base index) (car n)) (to-decimal-aux (cdr n) base (+ index 1)))])))
 
-;*******************************************************************************************
-;; REFERENCIAS
-(define-datatype reference reference?
-  (una-referencia (index integer?)
-                  (un-vector vector?)))
-
-(define set-ref
-  (lambda(ref val)
-    (cases reference ref
-      (una-referencia (index un-vector) (vector-set! un-vector index val)))))
-
-(define val-ref
-  (lambda(ref)
-    (cases reference ref
-      (una-referencia (index un-vector) (vector-ref un-vector index)))))
-
-;*******************************************************************************************
-;; AMBIENTES
-(define scheme-value? (lambda (v) #t))
-
-(define-datatype env env?
-  (empty-env)
-  (extend-env (syms (list-of symbol?))(vec vector?)(env env?)))
-
-(define extended-env
-  (lambda (syms vals env)
-    (extend-env syms (list->vector vals) env)))
-
-(define extended-env-rec
-  (lambda (proc-names idss bodies old-env)
-    (let ((len (length proc-names)))
-      (let ((vec (make-vector len)))
-        (let ((env (extend-env proc-names vec old-env)))
-          (for-each
-            (lambda (pos ids body)
-              (vector-set! vec pos (closure ids body env)))
-            (list-to-end len) idss bodies)
-          env)))))
-  
-(define env0 (empty-env))
-
-(define-datatype closure-type closure-type?
-  (closure
-   (ids (list-of symbol?))
-   (exp expresion?)
-   (env env?)))
-
-(define apply-procedure
-  (lambda (proc args)
-    (cases closure-type proc
-      (closure (ids exp env) (eval-expresion exp (extended-env ids args env))))))
-
-(define apply-env
-  (lambda (env sym)
-    (val-ref (apply-env-aux env sym))))
-
-(define apply-env-aux
-  (lambda (ambiente id)
-    (cases env ambiente
-      (empty-env ()(eopl:error 'apply-env-aux "Error, el id no existe ~s" id))
-      (extend-env (syms vals ambiente-old)
-                           (let ((index (list-find-position id syms)))
-                             (if (number? index)
-                                 (una-referencia index vals)
-                                 (apply-env-aux ambiente-old id)))))))
-
-(define list-find-position
-  (lambda (id lista)
-    (list-index (lambda (x) (eqv? x id)) lista)))
-
-(define list-index
-  (lambda (func ls)
-    (cond
-      ((null? ls) #f)
-      ((func (car ls)) 0)
-      (else (let ((list-index-r (list-index func (cdr ls))))
-              (if (number? list-index-r)
-                (+ list-index-r 1)
-                #f))))))
-
-(define list-to-end
-  (lambda (end)
-    (let loop ((next 0))
-      (if (>= next end) '()
-        (cons next (loop (+ 1 next)))))))
-
-;*******************************************************************************************
-;; PROMPT
-(define mixer.exe
-  (sllgen:make-rep-loop  "@Mixer -> "
-    (lambda (programa) (eval-program programa)) 
-    (sllgen:make-stream-parser lexica gramatical)))
 
 ;*******************************************************************************************
 ;; AUTONRUN
 (mixer.exe)
-
-#|
-
-export func $f ($x) => {if ($x == 0){1} else { ($x* import $f (--($x)))}} (import $f (10))
-
-import func ($y) => {++($y)} (5)
-
-private def (const $x = func ($x) => {++($x)}){import $x (5)}
-
-private def (const $b = 3, init static $a = 1,
-             const $sumar = func ($x, $y) => {($y+$x)} ) {import $sumar ($a,$b)}
-
-private def (const $b = 10, init static $a = 1) {
-( export func $f ($x) => {if ($x == 0){1} else { ($x* import $f (--($x)))}} (import $f ($b))+ $a )}
-|#
-
-
-
 
 
 
