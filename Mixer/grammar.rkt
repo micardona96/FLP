@@ -26,10 +26,7 @@
 
                 :=  if  < expresion >  {  < expresion >  } else {  < expresion >  }  
                 condicional-exp (cond  true-exp  false-exp)
-
-                :=  private def ( < def-privada , * > ) {  < expresion >  }
-                definicion-exp (def-privadas body)
-
+                
                 :=  x32  [  < numero * >  ]  
                 base-32-exp (nums)
 
@@ -48,26 +45,26 @@
                 :=  < primitiva-unaria >  (< expresion > )  
                 op-unaria-exp (primitive-un exp)
 
-                :=  func (< identificador > , * ) = {  < expresion >  }  
+                :=  func ( < identificador > , * ) => {  < expresion >  }  
                 función-exp (ids exp)
 
-                :=  import (< expresion >  (< expresion > * )  
-                ejecutar-function-exp (ids  exp)
+                :=  import < expresion >  (< expresion > * )  
+                ejecutar-function-exp (operator operands)
 
-                :=  export func  < identificador >  (< identificador > , * ) ={  < expresion >  }  
+                :=  export func  < identificador >  (< identificador > , * ) => {  < expresion >  }  (< expresion > )
                 función-rec-exp (id  ids  exp)
 
-
-< def-privada >
+                :=  private def ( < expresion , * > ) {  < expresion >  }
+                definicion-exp (def-privadas body)
 
                 :=  const  < identificador >  =  < expresion > 
-                constante (id  exp)
+                constante-exp (id  exp)
 
                 :=  static  < identificador > 
-                crear-var (id)
+                crear-var-exp (id)
 
                 :=  init static  < identificador >  =  < expresion > 
-                asignar-var (id  exp)
+                asignar-var-exp (id  exp)
 
 
 < primitiva-unaria >
