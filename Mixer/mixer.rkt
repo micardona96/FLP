@@ -133,7 +133,7 @@
      (true-exp () #t)
      (false-exp () #f)
      (texto-exp (txt) txt)
-     (id-exp (id) (apply-env id env))
+     (id-exp (id) (apply-env env id))
      (condicional-exp (condition true-exp false-exp)
                       (if (eval-expresion condition env)
                           (eval-expresion true-exp env)
@@ -152,9 +152,10 @@
 
      (crear-var-exp (id)(extended-env (list id) (list "undefined") env))
                   
-     (asignar-var-exp (id val);; ERROR SET BEFORE
+     (asignar-var-exp (id val)
                (let ((arg (eval-rand val env)))
                  (extended-env (list id) (list arg) env)))
+
      
 ;*******************************************************************************************
 
@@ -396,14 +397,14 @@
     (val-ref (apply-env-aux env sym))))
 
 (define apply-env-aux
-  (lambda (id ambiente)
+  (lambda (ambiente id)
     (cases env ambiente
       (empty-env ()(eopl:error 'apply-env-aux "Error, el id no existe ~s" id))
       (extend-env (syms vals ambiente-old)
                            (let ((index (list-find-position id syms)))
                              (if (number? index)
                                  (una-referencia index vals)
-                                 (apply-env-aux id ambiente-old)))))))
+                                 (apply-env-aux ambiente-old id)))))))
 
 (define list-find-position
   (lambda (id lista)
@@ -438,20 +439,18 @@
 
 #|
 
-(eval-program (parser "
-   export func $f ($x) => {if ($x == 0){1} else { ($x* import $f (--($x)))}} (import $f (10))"))
+export func $f ($x) => {if ($x == 0){1} else { ($x* import $f (--($x)))}} (import $f (10))
 
-(eval-program (parser "import func ($y) => {++($y)} (5)"))
+import func ($y) => {++($y)} (5)
 
-(eval-program (parser "private def (const $x = func ($x) => {++($x)})
-{import $x (5)}"))
+private def (const $x = func ($x) => {++($x)}){import $x (5)}
 
 private def (const $b = 3, init static $a = 1,
              const $sumar = func ($x, $y) => {($y+$x)} ) {import $sumar ($a,$b)}
 
+private def (const $b = 10, init static $a = 1) {
+( export func $f ($x) => {if ($x == 0){1} else { ($x* import $f (--($x)))}} (import $f ($b))+ $a )}
 |#
-
-
 
 
 
