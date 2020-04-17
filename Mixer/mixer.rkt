@@ -32,7 +32,7 @@
     (expresion (identificador) id-exp)      ;; PHP
     (expresion ("if" expresion "{" expresion "}" "else" "{" expresion "}" ) condicional-exp) ;; JAVASCRIPT
     
-    (expresion ("private" "def" "("(separated-list def-privada ",")")" "{" expresion "}") definicion-exp) ;; PHYTON
+    (expresion ("private" "def" "("(separated-list "const" identificador "=" expresion ",")")" "{" expresion "}") definicion-exp) ;; PHYTON
     
     (expresion ("x32" "[" (arbno numero) "]") base-32-exp)
     (expresion ("x16" "[" (arbno numero) "]") base-16-exp)
@@ -44,20 +44,16 @@
 
     (expresion ("func" "("(separated-list identificador ",") ")" "=>" "{" expresion "}") funcion-exp) ;; SWIFT 
     (expresion ("import" expresion "(" (arbno expresion) ")") ejecutar-function-exp) ;; JAVASCRIPT
-    (expresion ("export" "func" identificador "("(separated-list identificador ",") ")"
-                          "=>" "{" expresion "}")funcion-rec-exp) ;; JAVASCRIPT + SWIFT
+    
+    (expresion ("export" "func" (arbno identificador "(" (separated-list identificador ",") ")"
+                                       "=>" "{"expresion"}") "(" expresion ")") funcion-rec-exp) ;; JAVASCRIPT + SWIFT
+        
 
-
-    
-    (expresion ("module" "{" ( arbno expresion) "return" expresion "}") sucesion-exp) ;; JAVASCRIPT
-    (expresion ("now" identificador "=" expresion )set-exp)
-    
-    
 ;*******************************************************************************************
-;;DEFINICIONES EN AMBITOS PRIVADOS
-    (def-privada ("const" identificador "=" expresion )constante) ;; C 
-    (def-privada ("static" identificador) crear-var) ;; JAVA
-    (def-privada ("init" "static" identificador  "=" expresion) asignar-var) ;; JAVA
+;;  DEFINICIONES EN AMBITOS PRIVADOS
+;;    (def-privada ("const" identificador "=" expresion )constante) ;; C 
+;;    (def-privada ("static" identificador) crear-var) ;; JAVA
+;;    (def-privada ("init" "static" identificador  "=" expresion) asignar-var) ;; JAVA
     
 ;*******************************************************************************************   
 ;; PRIMITIVAS POR BASES
@@ -143,10 +139,10 @@
                           (eval-expresion true-exp env)
                           (eval-expresion false-exp env)))
      
-     (definicion-exp (def-privada-list body)
-                        (let ((ids (extract-id-map def-privada-list))
-                              (vals (extract-val-map def-privada-list env)))
-                          (eval-expresion body (extended-env ids vals env))))
+     (definicion-exp (ids rands body)
+               (let ((args (eval-rands rands env)))
+                 (eval-expresion body
+                                  (extended-env ids args env))))
 
      (base-32-exp (list-nums) list-nums)
      (base-16-exp (list-nums) list-nums)
@@ -157,8 +153,23 @@
                                                        (eval-expresion exp1 env)
                                                        (eval-expresion exp2 env)))
      (op-unaria-exp (operator exp)(eval-pri-un operator
-                                                       (eval-expresion exp env)))    
-     (else 'falta-implementar))))
+                                                       (eval-expresion exp env)))
+
+     (funcion-exp (ids body)
+                (closure ids body env))
+     
+     (ejecutar-function-exp (rator rands)
+               (let ((proc (eval-expresion rator env))
+                     (args (eval-rands rands env)))
+                 (if (closure-type? proc)
+                     (apply-procedure proc args)
+                     (eopl:error 'eval-expression "Error, no es un procedimiento" proc))))
+
+     (funcion-rec-exp (names idss bodies letrec-body)
+                  (eval-expresion letrec-body
+                                   (extended-env-rec names idss bodies env)))
+     
+     (else #f))))
 
 
 ;*******************************************************************************************
@@ -207,7 +218,7 @@
       ;;BASICAS
       (negacion      () (not val))
       (sumar-uno     () (+ val 1))
-      (restar-uno    () (+ val 1))
+      (restar-uno    () (- val 1))
       ;;STRING
       (longitud      () (string-length val))
       ;;LISTAS
@@ -234,30 +245,13 @@
   (lambda (list-without-eval env)
     (map (lambda (exp) (eval-expresion exp env)) list-without-eval)))
 
-;; EXTRACTORES DEF-PRIVATE
-(define  extract-id-map
-  (lambda (def-privada-list)
-    (map (lambda (def-privada) (extract-id def-privada)) def-privada-list)))
+(define eval-rands
+  (lambda (rands env)
+    (map (lambda (x) (eval-rand x env)) rands)))
 
-;;extrea es el id de un def-private type
-(define extract-id
-  (lambda (vars)
-    (cases def-privada vars
-    (constante (id exp) id)
-    (crear-var (id) id)
-    (asignar-var (id exp) id))))
-
-(define  extract-val-map
-  (lambda (def-privada-list env)
-    (map (lambda (def-privada) (eval-expresion (extract-val def-privada) env)) def-privada-list)))
-
-;;extrea es el valor de un def-private type
-(define extract-val
-  (lambda (vars)
-    (cases def-privada vars
-    (constante (id exp) exp)
-    (crear-var (id) (texto-exp "undefined"))
-    (asignar-var (id exp) exp))))
+(define eval-rand
+  (lambda (rand env)
+    (eval-expresion rand env)))
 
 ;*******************************************************************************************
 ;; BIGNUM
@@ -404,7 +398,24 @@
 
 ;*******************************************************************************************
 ;; AUTONRUN
- (mixer.exe)
+(mixer.exe)
+
+#|
+
+(eval-program (parser "
+   export func $f ($x) => {if ($x == 0){1} else { ($x* import $f (--($x)))}} (import $f (10))"))
+
+(eval-program (parser "import func ($y) => {++($y)} (5)"))
+
+(eval-program (parser "private def (const $x = func ($x) => {++($x)})
+{import $x (5)}"))
+
+|#
+
+
+
+
+
 
 
 
