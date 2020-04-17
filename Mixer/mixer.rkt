@@ -32,7 +32,7 @@
     (expresion (identificador) id-exp)      ;; PHP
     (expresion ("if" expresion "{" expresion "}" "else" "{" expresion "}" ) condicional-exp) ;; JAVASCRIPT
     
-    (expresion ("private" "def" "("(separated-list "const" identificador "=" expresion ",")")" "{" expresion "}") definicion-exp) ;; PHYTON
+    (expresion ("private" "def" "("(separated-list expresion ",")")" "{" expresion "}") definicion-exp) ;; PHYTON
     
     (expresion ("x32" "[" (arbno numero) "]") base-32-exp)
     (expresion ("x16" "[" (arbno numero) "]") base-16-exp)
@@ -43,7 +43,7 @@
     (expresion (primitiva-unaria "(" expresion ")") op-unaria-exp) ;; C++
 
     (expresion ("func" "("(separated-list identificador ",") ")" "=>" "{" expresion "}") funcion-exp) ;; SWIFT 
-    (expresion ("import" expresion "(" (arbno expresion) ")") ejecutar-function-exp) ;; JAVASCRIPT
+    (expresion ("import" expresion "(" (separated-list expresion ",") ")") ejecutar-function-exp) ;; JAVASCRIPT
     
     (expresion ("export" "func" (arbno identificador "(" (separated-list identificador ",") ")"
                                        "=>" "{"expresion"}") "(" expresion ")") funcion-rec-exp) ;; JAVASCRIPT + SWIFT
@@ -51,9 +51,9 @@
 
 ;*******************************************************************************************
 ;;  DEFINICIONES EN AMBITOS PRIVADOS
-;;    (def-privada ("const" identificador "=" expresion )constante) ;; C 
-;;    (def-privada ("static" identificador) crear-var) ;; JAVA
-;;    (def-privada ("init" "static" identificador  "=" expresion) asignar-var) ;; JAVA
+    (expresion ("const" identificador "=" expresion )constante-exp) ;; C 
+    (expresion ("static" identificador) crear-var-exp) ;; JAVA
+    (expresion ("init" "static" identificador  "=" expresion) asignar-var-exp) ;; JAVA
     
 ;*******************************************************************************************   
 ;; PRIMITIVAS POR BASES
@@ -139,10 +139,24 @@
                           (eval-expresion true-exp env)
                           (eval-expresion false-exp env)))
      
-     (definicion-exp (ids rands body)
-               (let ((args (eval-rands rands env)))
-                 (eval-expresion body
-                                  (extended-env ids args env))))
+     (definicion-exp (exps body)
+     (let ((ids (map-extract-ids (eval-rands exps env)))
+           (vals (map-extract-val (eval-rands exps env))))
+      (eval-expresion body (extended-env ids vals env))))
+     
+;*******************************************************************************************
+;; EXP PRIVATE
+     (constante-exp (id val)
+               (let ((arg (eval-rand val env)))
+                 (extended-env (list id) (list arg) env)))
+
+     (crear-var-exp (id)(extended-env (list id) (list "undefined") env))
+                  
+     (asignar-var-exp (id val);; ERROR SET BEFORE
+               (let ((arg (eval-rand val env)))
+                 (extended-env (list id) (list arg) env)))
+     
+;*******************************************************************************************
 
      (base-32-exp (list-nums) list-nums)
      (base-16-exp (list-nums) list-nums)
@@ -157,13 +171,13 @@
 
      (funcion-exp (ids body)
                 (closure ids body env))
-     
+
      (ejecutar-function-exp (rator rands)
                (let ((proc (eval-expresion rator env))
                      (args (eval-rands rands env)))
-                 (if (closure-type? proc)
-                     (apply-procedure proc args)
-                     (eopl:error 'eval-expression "Error, no es un procedimiento" proc))))
+                (if (closure-type? proc)
+                    (apply-procedure proc args)
+                    (eopl:error 'eval-expression "Error, no es un procedimiento" proc))))
 
      (funcion-rec-exp (names idss bodies letrec-body)
                   (eval-expresion letrec-body
@@ -252,6 +266,28 @@
 (define eval-rand
   (lambda (rand env)
     (eval-expresion rand env)))
+
+;; EXTRACT
+
+(define map-extract-ids
+  (lambda (ext-envs)
+    (map (lambda (x) (extract-id x)) ext-envs)))
+
+(define extract-id
+  (lambda (ext-env)
+    (cases env ext-env
+    (extend-env (syms vec ammbiente) (car syms))
+    (else 'error ))))
+
+(define map-extract-val
+  (lambda (ext-envs)
+    (map (lambda (x) (extract-val x)) ext-envs)))
+
+(define extract-val
+  (lambda (ext-env)
+    (cases env ext-env
+    (extend-env (syms vec ammbiente) (vector-ref vec 0))
+    (else 'error ))))
 
 ;*******************************************************************************************
 ;; BIGNUM
@@ -409,6 +445,9 @@
 
 (eval-program (parser "private def (const $x = func ($x) => {++($x)})
 {import $x (5)}"))
+
+private def (const $b = 3, init static $a = 1,
+             const $sumar = func ($x, $y) => {($y+$x)} ) {import $sumar ($a,$b)}
 
 |#
 
