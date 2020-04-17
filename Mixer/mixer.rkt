@@ -46,6 +46,12 @@
     (expresion ("import" expresion "(" (arbno expresion) ")") ejecutar-function-exp) ;; JAVASCRIPT
     (expresion ("export" "func" identificador "("(separated-list identificador ",") ")"
                           "=>" "{" expresion "}")funcion-rec-exp) ;; JAVASCRIPT + SWIFT
+
+
+    
+    (expresion ("module" "{" ( arbno expresion) "return" expresion "}") sucesion-exp) ;; JAVASCRIPT
+    (expresion ("now" identificador "=" expresion )set-exp)
+    
     
 ;*******************************************************************************************
 ;;DEFINICIONES EN AMBITOS PRIVADOS
@@ -116,74 +122,6 @@
 (define parser (sllgen:make-string-parser lexica gramatical))
 
 ;*******************************************************************************************
-;; PROMPT
-(define mixer.exe
-  (sllgen:make-rep-loop  "@Mixer -> "
-    (lambda (programa) (eval-program programa)) 
-    (sllgen:make-stream-parser lexica gramatical)))
-
-;*******************************************************************************************
-;; AMBIENTES
-(define scheme-value? (lambda (v) #t))
-
-(define-datatype env env?
-  (empty-env)
-  (extended-env (syms (list-of symbol?))
-                (vals (list-of scheme-value?))
-                (env env?))
-  
-(extended-env-rec
-  (proc-names (list-of symbol?))
-  (syms (list-of (list-of symbol?)))
-  (vals (list-of scheme-value?))
-  (env env?)))
-
-(define env0 (empty-env))
-
-(define-datatype closure-type closure-type?
-  (closure
-   (ids (list-of symbol?))
-   (exp expresion?)
-   (env env?)))
-
-(define apply-procedure
-  (lambda (proc args)
-    (cases closure-type proc
-      (closure (ids exp env) (eval-expresion exp (extended-env ids args env))))))
-
-(define search-var-const
-  (lambda (id ambiente)
-    (cases env ambiente
-      (empty-env ()(eopl:error 'buscar-variable "Error, la variable no existe ~s" id))
-      (extended-env (syms vals ambiente-old)
-                           (let ((index (list-find-position id syms)))
-                             (if (number? index)
-                                 (list-ref vals index)
-                                 (search-var-const id ambiente-old))))
-      (extended-env-rec (proc-names symss vals ambiente-old)
-                           (let ((index (list-find-position id proc-names)))
-                             (if (number? index)
-                                 (closure (list-ref symss index)
-                                          (list-ref vals index)
-                                           ambiente)
-                                 (search-var-const id ambiente-old)))))))
-
-(define list-find-position
-  (lambda (id lista)
-    (list-index (lambda (x) (eqv? x id)) lista)))
-
-
-(define list-index
-  (lambda (func ls)
-    (cond
-      ((null? ls) #f)
-      ((func (car ls)) 0)
-      (else (let ((list-index-r (list-index func (cdr ls))))
-              (if (number? list-index-r)
-                (+ list-index-r 1)
-                #f))))))
-
-;*******************************************************************************************
 ;; EVAL-PROGRAM
 (define eval-program
   (lambda (pgm)
@@ -199,12 +137,13 @@
      (true-exp () #t)
      (false-exp () #f)
      (texto-exp (txt) txt)
-     (id-exp (id) (search-var-const id env))
+     (id-exp (id) (apply-env id env))
      (condicional-exp (condition true-exp false-exp)
                       (if (eval-expresion condition env)
                           (eval-expresion true-exp env)
                           (eval-expresion false-exp env)))
-    (definicion-exp (def-privada-list body) ;; BASICO
+     
+     (definicion-exp (def-privada-list body)
                         (let ((ids (extract-id-map def-privada-list))
                               (vals (extract-val-map def-privada-list env)))
                           (eval-expresion body (extended-env ids vals env))))
@@ -317,9 +256,8 @@
   (lambda (vars)
     (cases def-privada vars
     (constante (id exp) exp)
-    (crear-var (id) 'null)
+    (crear-var (id) (texto-exp "undefined"))
     (asignar-var (id exp) exp))))
-
 
 ;*******************************************************************************************
 ;; BIGNUM
@@ -371,10 +309,102 @@
       [(null? n )0]
       [else (+ (*(expt base index) (car n)) (to-decimal-aux (cdr n) base (+ index 1)))])))
 
+;*******************************************************************************************
+;; REFERENCIAS
+(define-datatype reference reference?
+  (una-referencia (index integer?)
+                  (un-vector vector?)))
+
+(define set-ref
+  (lambda(ref val)
+    (cases reference ref
+      (una-referencia (index un-vector) (vector-set! un-vector index val)))))
+
+(define val-ref
+  (lambda(ref)
+    (cases reference ref
+      (una-referencia (index un-vector) (vector-ref un-vector index)))))
+
+;*******************************************************************************************
+;; AMBIENTES
+(define scheme-value? (lambda (v) #t))
+
+(define-datatype env env?
+  (empty-env)
+  (extend-env (syms (list-of symbol?))(vec vector?)(env env?)))
+
+(define extended-env
+  (lambda (syms vals env)
+    (extend-env syms (list->vector vals) env)))
+
+(define extended-env-rec
+  (lambda (proc-names idss bodies old-env)
+    (let ((len (length proc-names)))
+      (let ((vec (make-vector len)))
+        (let ((env (extend-env proc-names vec old-env)))
+          (for-each
+            (lambda (pos ids body)
+              (vector-set! vec pos (closure ids body env)))
+            (list-to-end len) idss bodies)
+          env)))))
+  
+(define env0 (empty-env))
+
+(define-datatype closure-type closure-type?
+  (closure
+   (ids (list-of symbol?))
+   (exp expresion?)
+   (env env?)))
+
+(define apply-procedure
+  (lambda (proc args)
+    (cases closure-type proc
+      (closure (ids exp env) (eval-expresion exp (extended-env ids args env))))))
+
+(define apply-env
+  (lambda (env sym)
+    (val-ref (apply-env-aux env sym))))
+
+(define apply-env-aux
+  (lambda (id ambiente)
+    (cases env ambiente
+      (empty-env ()(eopl:error 'apply-env-aux "Error, el id no existe ~s" id))
+      (extend-env (syms vals ambiente-old)
+                           (let ((index (list-find-position id syms)))
+                             (if (number? index)
+                                 (una-referencia index vals)
+                                 (apply-env-aux id ambiente-old)))))))
+
+(define list-find-position
+  (lambda (id lista)
+    (list-index (lambda (x) (eqv? x id)) lista)))
+
+(define list-index
+  (lambda (func ls)
+    (cond
+      ((null? ls) #f)
+      ((func (car ls)) 0)
+      (else (let ((list-index-r (list-index func (cdr ls))))
+              (if (number? list-index-r)
+                (+ list-index-r 1)
+                #f))))))
+
+(define list-to-end
+  (lambda (end)
+    (let loop ((next 0))
+      (if (>= next end) '()
+        (cons next (loop (+ 1 next)))))))
+
+;*******************************************************************************************
+;; PROMPT
+(define mixer.exe
+  (sllgen:make-rep-loop  "@Mixer -> "
+    (lambda (programa) (eval-program programa)) 
+    (sllgen:make-stream-parser lexica gramatical)))
 
 ;*******************************************************************************************
 ;; AUTONRUN
-(mixer.exe)
+ (mixer.exe)
 
 
 
