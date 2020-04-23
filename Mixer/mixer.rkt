@@ -51,7 +51,9 @@
 
 ;*******************************************************************************************
 ;;  DEFINICIONES EN AMBITOS PRIVADOS
-    (expresion ("const" identificador "=" expresion )constante-exp) ;; C 
+    (expresion ("const" identificador "=" expresion )constante-exp) ;; C
+
+    ;; Asiganción unica
     (expresion ("static" identificador) crear-var-exp) ;; JAVA
     (expresion ("init" "static" identificador  "=" expresion) asignar-var-exp) ;; JAVA
     
@@ -140,21 +142,29 @@
                           (eval-expresion false-exp env)))
      
      (definicion-exp (exps body)
-     (let ((ids (map-extract-ids (eval-rands exps env)))
-           (vals (map-extract-val (eval-rands exps env))))
-      (eval-expresion body (extended-env ids vals env))))
+       (let ((ids (map-extract-ids (eval-rands exps env)))
+             (checks (map-extract-checks (eval-rands exps env)))
+             (vals (map-extract-val (eval-rands exps env))))   
+        (eval-expresion body (extended-env ids vals checks env))))
+  
      
 ;*******************************************************************************************
 ;; EXP PRIVATE
      (constante-exp (id val)
                (let ((arg (eval-rand val env)))
-                 (extended-env (list id) (list arg) env)))
+                 (extended-env (list id) (list arg) (list #t) env))) ;; aca
 
-     (crear-var-exp (id)(extended-env (list id) (list "undefined") env))
+     (crear-var-exp (id)(extended-env (list id)(list "undefined")(list #f) env))
                   
      (asignar-var-exp (id val)
-               (let ((arg (eval-rand val env)))
-                 (extended-env (list id) (list arg) env)))
+             (if (equal? env env0) (extended-env (list id) (list (eval-expresion val env)) (list #t) env) 
+               (let ((check (search-const-env env id ))
+                     (args (eval-rand val env)))
+                 (if (and (not check) (equal? args "undefined")) 
+                     (extended-env (list id) (list args) (list #t) env)
+                     (if check
+                       (eopl:error 'eval-expression "Error, no se puede re-asignar")
+                       (extended-env (list id) (list args) (list #t) env))))))
 
      
 ;*******************************************************************************************
@@ -170,8 +180,7 @@
      (op-unaria-exp (operator exp)(eval-pri-un operator
                                                        (eval-expresion exp env)))
 
-     (funcion-exp (ids body)
-                (closure ids body env))
+     (funcion-exp (ids body)(closure ids body env))
 
      (ejecutar-function-exp (rator rands)
                (let ((proc (eval-expresion rator env))
@@ -268,6 +277,10 @@
   (lambda (rand env)
     (eval-expresion rand env)))
 
+
+;*******************************************************************************************
+;*******************************************************************************************
+;*******************************************************************************************
 ;; EXTRACT
 
 (define map-extract-ids
@@ -277,7 +290,7 @@
 (define extract-id
   (lambda (ext-env)
     (cases env ext-env
-    (extend-env (syms vec ammbiente) (car syms))
+    (extend-env (syms vec check ambiente) (car syms))
     (else 'error ))))
 
 (define map-extract-val
@@ -287,7 +300,18 @@
 (define extract-val
   (lambda (ext-env)
     (cases env ext-env
-    (extend-env (syms vec ammbiente) (vector-ref vec 0))
+    (extend-env (syms vec check ambiente) (vector-ref vec 0))
+    (else 'error ))))
+
+
+(define map-extract-checks
+  (lambda (ext-envs)
+    (map (lambda (x) (extract-bool x)) ext-envs)))
+
+(define extract-bool
+  (lambda (ext-env)
+    (cases env ext-env
+    (extend-env (syms vec check ambiente) (car check) )
     (else 'error ))))
 
 ;*******************************************************************************************
@@ -362,17 +386,17 @@
 
 (define-datatype env env?
   (empty-env)
-  (extend-env (syms (list-of symbol?))(vec vector?)(env env?)))
+  (extend-env (syms (list-of symbol?))(vec vector?)(checks(list-of boolean?))(env env?)))
 
 (define extended-env
-  (lambda (syms vals env)
-    (extend-env syms (list->vector vals) env)))
+  (lambda (syms vals checks env)
+    (extend-env syms (list->vector vals) checks env)))
 
 (define extended-env-rec
   (lambda (proc-names idss bodies old-env)
     (let ((len (length proc-names)))
       (let ((vec (make-vector len)))
-        (let ((env (extend-env proc-names vec old-env)))
+        (let ((env (extend-env proc-names vec (list #f) old-env)))
           (for-each
             (lambda (pos ids body)
               (vector-set! vec pos (closure ids body env)))
@@ -390,7 +414,7 @@
 (define apply-procedure
   (lambda (proc args)
     (cases closure-type proc
-      (closure (ids exp env) (eval-expresion exp (extended-env ids args env))))))
+      (closure (ids exp env)(eval-expresion exp (extended-env ids args (list #f) env))))))
 
 (define apply-env
   (lambda (env sym)
@@ -400,11 +424,22 @@
   (lambda (ambiente id)
     (cases env ambiente
       (empty-env ()(eopl:error 'apply-env-aux "Error, el id no existe ~s" id))
-      (extend-env (syms vals ambiente-old)
+      (extend-env (syms vals check ambiente-old)
                            (let ((index (list-find-position id syms)))
                              (if (number? index)
                                  (una-referencia index vals)
                                  (apply-env-aux ambiente-old id)))))))
+
+;; buscador auxiliar de constantes.
+(define search-const-env
+  (lambda (ambiente id) (display ambiente)))
+    ;(cases env ambiente
+      ;(empty-env ()(eopl:error 'search-const-env "no existe ese id ~s" id));; crear una constatnte de una vez
+     ; (extend-env (syms vals check ambiente-old)
+          ;                 (let ((index (list-find-position id syms)))
+                  ;         (if (number? index)
+                    ;            (list-ref check index)
+                        ;        (search-const-env ambiente-old id)))))))
 
 (define list-find-position
   (lambda (id lista)
@@ -439,11 +474,16 @@
 
 #|
 
-export func $f ($x) => {if ($x == 0){1} else { ($x* import $f (--($x)))}} (import $f (10))
+export func $factorial ($x) => {if ($x == 0){1} else { ($x* import $factorial (--($x)))}}
+(import $factorial (10))
 
 import func ($y) => {++($y)} (5)
 
-private def (const $x = func ($x) => {++($x)}){import $x (5)}
+private def (init static $z = 3, init static $y = 13 ){private def ( init static $x = 43){$x}}
+
+
+private def (init static $x = 3, init static $y = 3 ){$x}
+
 
 private def (const $b = 3, init static $a = 1,
              const $sumar = func ($x, $y) => {($y+$x)} ) {import $sumar ($a,$b)}
