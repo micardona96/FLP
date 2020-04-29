@@ -51,7 +51,8 @@
 
 ;*******************************************************************************************
 ;;  DEFINICIONES EN AMBITOS PRIVADOS
-    (expresion ("const" identificador "=" expresion )constante-exp) ;; C 
+    (expresion ("const" identificador "=" expresion )constante-exp) ;; C
+    
     (expresion ("static" identificador) crear-var-exp) ;; JAVA
     (expresion ("init" "static" identificador  "=" expresion) asignar-var-exp) ;; JAVA
     
@@ -146,12 +147,14 @@
      
 ;*******************************************************************************************
 ;; EXP PRIVATE
-     (constante-exp (id val)
+;; CONSTANTE BASICA EN UN AMBITO 
+    (constante-exp (id val)
                (let ((arg (eval-rand val env)))
                  (extended-env (list id) (list arg) env)))
 
-     (crear-var-exp (id)(extended-env (list id) (list "undefined") env))
-                  
+;; Funcionamiento parcial, constantes en su ambito 
+     (crear-var-exp (id)(extended-env (list id) (list "indefinido") env))
+                 
      (asignar-var-exp (id val)
                (let ((arg (eval-rand val env)))
                  (extended-env (list id) (list arg) env)))
@@ -438,17 +441,21 @@
 (mixer.exe)
 
 #|
-
+export func $f ($x) => {if ($x == 0){1} else { ($x* import $f (--($x)))}} (import $f (10))
 export func $f ($x) => {if ($x == 0){1} else { ($x* import $f (--($x)))}} (import $f (10))
 
 import func ($y) => {++($y)} (5)
 
-private def (const $x = func ($x) => {++($x)}){import $x (5)}
+private def (const $x = func ($x) => {++($x)}, const $z = 5){import $x (5)}
+private def (init static $x = func ($x) => {++($x)}, const $z = 5){import $x (5)}
 
 private def (const $b = 3, init static $a = 1,
              const $sumar = func ($x, $y) => {($y+$x)} ) {import $sumar ($a,$b)}
 
 private def (const $b = 10, init static $a = 1) {
+( export func $f ($x) => {if ($x == 0){1} else { ($x* import $f (--($x)))}} (import $f ($b))+ $a )}
+
+private def (const $b = 10, const $a = 1) {
 ( export func $f ($x) => {if ($x == 0){1} else { ($x* import $f (--($x)))}} (import $f ($b))+ $a )}
 |#
 
