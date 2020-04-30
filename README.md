@@ -123,24 +123,6 @@ reglas para todas las primitivas, condicionales, invocaci´on de procedimientos,
 los distintos tipos de variables.
 
 ---
-## 🖋️ Lenguaje Mixer++
-
-* **Declaracion de clases y metodos**
-
-* **Creacion de objetos:**
-simples o planos, cualquier
-implementacion es valida
-
-* **Invocacion de metodos y seleccion de campos:**
-el lenguaje debe permitir invocar metodos
-asociados a objetos y obtener los valores asociados a los campos.
-
-* **Actualizacion de campos:**
-el lenguaje debe permitir actualizar los campos asociados a un objeto
-El lenguaje debe incluir conceptos como: herencia,
-llamados a metodos de la superclase, polimorfismo.
-
----
 ## 🖍️ ESSENTIALS OF PROGRAMMING LANGUAGES
 Developed by [Miguel Cardona](mailto:cardona.miguel@correounivalle.edu.co),
 This repository contains the codes related to different activities. for the development of a programming language using Scheme with the use of the SLLGEN library.
