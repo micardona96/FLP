@@ -48,14 +48,21 @@
     
     (expresion ("export" "func" (arbno identificador "(" (separated-list identificador ",") ")"
                                        "=>" "{"expresion"}") "(" expresion ")") funcion-rec-exp) ;; JAVASCRIPT + SWIFT
+
+    (expresion ("module" "{"  expresion (arbno expresion ) "}") module-exp)
+
+    (expresion ("now" "(" identificador ")" "=>" expresion )reasing-exp)
+
         
 
 ;*******************************************************************************************
 ;;  DEFINICIONES EN AMBITOS PRIVADOS
     (expresion ("const" identificador "=" expresion )constante-exp) ;; C
     
+;;
     (expresion ("static" identificador) crear-var-exp) ;; JAVA
     (expresion ("init" "static" identificador  "=" expresion) asignar-var-exp) ;; JAVA
+
     
 ;*******************************************************************************************   
 ;; PRIMITIVAS POR BASES
@@ -137,7 +144,7 @@
      (definicion-exp (exps body)
      (let ((ids (map-extract-ids (eval-rands exps env)))
            (vals (map-extract-val (eval-rands exps env))))
-      (eval-expresion body (extended-env ids vals env))))
+     (eval-expresion body (extended-env ids vals env))))
      
 ;*******************************************************************************************
 ;; EXP PRIVATE
@@ -180,6 +187,19 @@
      (funcion-rec-exp (names idss bodies letrec-body)
                   (eval-expresion letrec-body
                                    (extended-env-rec names idss bodies env)))
+
+     (reasing-exp (id value)
+               (begin
+                 (set-ref
+                  (apply-env-aux env id)
+                  (eval-expresion value env)) 'ok!))
+     
+      (module-exp (exp exps)
+                  (let calcular ((return (eval-expresion exp env))
+                                 (exps exps))
+                    (if (null? exps)
+                        return
+                        (calcular (eval-expresion (car exps) env)(cdr exps)))))         
      
      (else #f))))
 
@@ -432,8 +452,8 @@
 ;*******************************************************************************************
 ;; TARGETS
 (define-datatype target target?
-  (direct-target (expval  is-value-exp?))
-  (indirect-target (ref  ref-direct-is-target?)))
+  (direct-target (expval is-value-exp?))
+  (indirect-target (ref ref-direct-is-target?)))
 
 (define is-value-exp? (lambda (x) (or
                                    (number? x)
@@ -466,7 +486,7 @@
 
 ;*******************************************************************************************
 ;; AUTONRUN
-;(mixer.exe)
+(mixer.exe)
 
 
 #|
@@ -489,6 +509,14 @@ private def (const $b = 10, init static $a = 1) {
 
 private def (const $b = 10, const $a = 1) {
 ( export func $f ($x) => {if ($x == 0){1} else { ($x* import $f (--($x)))}} (import $f ($b))+ $a )}
+
+private def (static $m){module{
+                                 now ($m) => 0
+                                 now ($m) => ++($m)
+                                 now ($m) => ($m * 2)
+                                 $m}}
+
+private def (static $m){module{$m}}
 |#
 
 
