@@ -11,6 +11,7 @@
     (comentario ("//" (arbno ( not #\newline ))) skip)
     (texto (letter (arbno (or letter digit))) string)
     (identificador ("$" letter (arbno (or letter digit))) symbol) ;; PHP
+    (identificador ("&" letter (arbno (or letter digit))) symbol) ;; C
     (numero (digit (arbno digit)) number)
     (numero (digit (arbno digit) "." digit (arbno digit)) number)
     (numero ("-" digit (arbno digit)) number)
@@ -110,13 +111,6 @@
     (primitiva-binaria ("push") push-lista) ;; JAVASCRIPT, eqv a eppend en racket
     
    ))
-
-;*******************************************************************************************
-;; AUTOCREATE DATATYPES
-
-(sllgen:make-define-datatypes lexica gramatical)
-(define scanner (sllgen:make-string-scanner lexica gramatical))
-(define parser (sllgen:make-string-parser lexica gramatical))
 
 ;*******************************************************************************************
 ;; EVAL-PROGRAM
@@ -271,8 +265,8 @@
   (lambda (rand env)
     (eval-expresion rand env)))
 
+;*******************************************************************************************
 ;; EXTRACT
-
 (define map-extract-ids
   (lambda (ext-envs)
     (map (lambda (x) (extract-id x)) ext-envs)))
@@ -295,7 +289,6 @@
 
 ;*******************************************************************************************
 ;; BIGNUM
-
 (define zero-bignum
   (lambda () '()))
 
@@ -331,7 +324,7 @@
     (if (is-zero-bignum? x)(zero-bignum)
         (suma-bignum (multiplicacion-bignum (predecessor x base) y base) y base))))
 
-
+;*******************************************************************************************
 ;; Funciona auxiliar para calcular en decimal un numero en otra base
 (define to-decimal
   (lambda (n base)
@@ -359,6 +352,7 @@
     (cases reference ref
       (una-referencia (index un-vector) (vector-ref un-vector index)))))
 
+
 ;*******************************************************************************************
 ;; AMBIENTES
 (define scheme-value? (lambda (v) #t))
@@ -384,6 +378,10 @@
   
 (define env0 (empty-env))
 
+
+
+;*******************************************************************************************
+;; CLOSURES
 (define-datatype closure-type closure-type?
   (closure
    (ids (list-of symbol?))
@@ -409,6 +407,8 @@
                                  (una-referencia index vals)
                                  (apply-env-aux ambiente-old id)))))))
 
+;*******************************************************************************************
+;; FUNC AUX IN ENV
 (define list-find-position
   (lambda (id lista)
     (list-index (lambda (x) (eqv? x id)) lista)))
@@ -430,17 +430,49 @@
         (cons next (loop (+ 1 next)))))))
 
 ;*******************************************************************************************
+;; TARGETS
+(define-datatype target target?
+  (direct-target (expval  is-value-exp?))
+  (indirect-target (ref  ref-direct-is-target?)))
+
+(define is-value-exp? (lambda (x) (or
+                                   (number? x)
+                                   (closure-type? x)
+                                   (string? x)
+                                   (list? x))))
+(define ref-direct-is-target?
+  (lambda (x)
+    (and (reference? x)
+         (cases reference x
+           (una-referencia (index vector)(cases target
+                                           (vector-ref vector index)
+                                           (direct-target (v) #t)
+                                           (indirect-target (v) #f)))))))
+
+;*******************************************************************************************
+;; AUTOCREATE DATATYPES
+(sllgen:make-define-datatypes lexica gramatical)
+(define scanner (sllgen:make-string-scanner lexica gramatical))
+(define parser (sllgen:make-string-parser lexica gramatical))
+(define view-datatype (sllgen:list-define-datatypes lexica gramatical))
+
+;*******************************************************************************************
 ;; PROMPT
 (define mixer.exe
   (sllgen:make-rep-loop  "@Mixer -> "
     (lambda (programa) (eval-program programa)) 
     (sllgen:make-stream-parser lexica gramatical)))
 
+
 ;*******************************************************************************************
 ;; AUTONRUN
-(mixer.exe)
+;(mixer.exe)
+
 
 #|
+
+Test
+
 export func $f ($x) => {if ($x == 0){1} else { ($x* import $f (--($x)))}} (import $f (10))
 export func $f ($x) => {if ($x == 0){1} else { ($x* import $f (--($x)))}} (import $f (10))
 
