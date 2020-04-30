@@ -49,9 +49,9 @@
     (expresion ("export" "func" (arbno identificador "(" (separated-list identificador ",") ")"
                                        "=>" "{"expresion"}") "(" expresion ")") funcion-rec-exp) ;; JAVASCRIPT + SWIFT
 
-    (expresion ("module" "{"  expresion (arbno expresion ) "}") module-exp)
+    (expresion ("module" "{"   (arbno expresion ) "return" expresion"}") module-exp)
 
-    (expresion ("now" "(" identificador ")" "=>" expresion )reasing-exp)
+    (expresion ("do" "(" identificador ")" "=>" expresion )reasing-exp)
 
         
 
@@ -59,10 +59,8 @@
 ;;  DEFINICIONES EN AMBITOS PRIVADOS
     (expresion ("const" identificador "=" expresion )constante-exp) ;; C
     
-;;
     (expresion ("static" identificador) crear-var-exp) ;; JAVA
     (expresion ("init" "static" identificador  "=" expresion) asignar-var-exp) ;; JAVA
-
     
 ;*******************************************************************************************   
 ;; PRIMITIVAS POR BASES
@@ -510,13 +508,10 @@ private def (const $b = 10, init static $a = 1) {
 private def (const $b = 10, const $a = 1) {
 ( export func $f ($x) => {if ($x == 0){1} else { ($x* import $f (--($x)))}} (import $f ($b))+ $a )}
 
-private def (static $m){module{
-                                 now ($m) => 0
-                                 now ($m) => ++($m)
-                                 now ($m) => ($m * 2)
+private def (const $m = 1){module{
+                                 do ($m) => ++($m)
+                                 do ($m) => ($m * 2)
                                  $m}}
-
-private def (static $m){module{$m}}
 |#
 
 
