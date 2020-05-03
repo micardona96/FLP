@@ -49,19 +49,18 @@
     (expresion ("export" "func" (arbno identificador "(" (separated-list identificador ",") ")"
                                        "=>" "{"expresion"}") "(" expresion ")") funcion-rec-exp) ;; JAVASCRIPT + SWIFT
 
-    (expresion ("module" "{"  expresion (arbno expresion ) "}") module-exp)
+    (expresion ("module" "{"   (arbno expresion ) "return" expresion"}") module-exp)
 
-    (expresion ("now" identificador "=" expresion )reasing-exp)
+    (expresion ("do" "(" identificador ")" "=>" expresion )reasing-exp)
 
-    (expresion ("for" "("expresion "to" expresion ")" "{" expresion "}") for-exp) ;;PHYTON
-
-    (expresion ("print" "("expresion")") print-exp) ;; C
+    (expresion ("for" "["expresion "," expresion "," expresion"]" "," expresion)
+               for-exp)
         
 
 ;*******************************************************************************************
 ;;  DEFINICIONES EN AMBITOS PRIVADOS
     (expresion ("const" identificador "=" expresion )constante-exp) ;; C
-    (expresion ("var" identificador "=" expresion )variable-exp) ;; C
+    
     (expresion ("static" identificador) crear-var-exp) ;; JAVA
     (expresion ("init" "static" identificador  "=" expresion) asignar-var-exp) ;; JAVA
     
@@ -153,9 +152,6 @@
     (constante-exp (id val)
                (let ((arg (eval-rand val env)))
                  (extended-env (list id) (list arg) env)))
-    (variable-exp (id val)
-               (let ((arg (eval-rand val env)))
-                 (extended-env (list id) (list arg) env)))
 
 ;; Funcionamiento parcial, constantes en su ambito 
      (crear-var-exp (id)(extended-env (list id) (list "indefinido") env))
@@ -203,33 +199,10 @@
                                  (exps exps))
                     (if (null? exps)
                         return
-                        (calcular (eval-expresion (car exps) env)(cdr exps)))))
+                        (calcular (eval-expresion (car exps) env)(cdr exps)))))         
+     
+     (else #f))))
 
-      (for-exp (start-exp cond-exp body )
-               (letrec
-                 ((start (eval-expresion start-exp env))
-                  (stop (eval-expresion cond-exp env)))
-                 (loop-aux start stop body env)))
- 
-     (print-exp (exp) (begin
-                         (display "console: ")
-                         (display (eval-expresion exp env))
-                         (display "\n")))
-      (else #f))))
-
-
-;*******************************************************************************************
-;; FOR AUX 
-(define loop-aux
-  (lambda (start stop body env)
-    (letrec((index (- stop start))
-            (return (lambda (n proc)
-                   (if (> n 0)
-                       (begin
-                       (eval-expresion body env)
-                         proc(return (- n 1) proc))
-                       (eval-expresion body env)))))
-      (return index body))))
 
 ;*******************************************************************************************
 ;; EVAL PRIMITVE BINARY
@@ -515,6 +488,7 @@
 ;; AUTONRUN
 (mixer.exe)
 
+
 #|
 
 Test
@@ -536,23 +510,10 @@ private def (const $b = 10, init static $a = 1) {
 private def (const $b = 10, const $a = 1) {
 ( export func $f ($x) => {if ($x == 0){1} else { ($x* import $f (--($x)))}} (import $f ($b))+ $a )}
 
-private def (static $m){module{
- now $m = 0
- now $m = ++($m)
- now $m = ($m * 2)
- $m}}
-
-for(1 to 5){print('hola')}
-
-private def (var $x = 0){
- module{
- for(1 to 100){
-  module{
-   print('for')
-   now $x = ++($x)}}
- $x}}
-
-
+private def (const $m = 1){module{
+                                 do ($m) => ++($m)
+                                 do ($m) => ($m * 2)
+                                 $m}}
 |#
 
 
