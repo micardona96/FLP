@@ -53,6 +53,8 @@
 
     (expresion ("do" "(" identificador ")" "=>" expresion )reasing-exp)
 
+    (expresion ("for" "["expresion "," expresion "," expresion"]" "," expresion)
+               for-exp)
         
 
 ;*******************************************************************************************
