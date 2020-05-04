@@ -94,6 +94,7 @@
     (primitiva-unaria ("++") sumar-uno) ;; C++
     (primitiva-unaria ("--") restar-uno) ;; C++
     (primitiva-unaria ("strlen") longitud) ;; PHP
+    (primitiva-unaria ("length") longitud-lista) ;; PHP
     (primitiva-unaria ("isNull") es-vacia?) ;; JAVASCRIPT
     (primitiva-unaria ("isList") es-lista?) ;; JAVASCRIPT
     (primitiva-unaria ("pop") primer-item) ;; JAVASCRIPT
@@ -205,10 +206,10 @@
                         return
                         (calcular (eval-expresion (car exps) env)(cdr exps)))))
 
-      (for-exp (start-exp cond-exp body )
+      (for-exp (start-exp finish-exp body )
                (letrec
                  ((start (eval-expresion start-exp env))
-                  (stop (eval-expresion cond-exp env)))
+                  (stop (eval-expresion finish-exp env)))
                  (loop-aux start stop body env)))
  
      (print-exp (exp) (begin
@@ -281,6 +282,7 @@
       ;;STRING
       (longitud      () (string-length val))
       ;;LISTAS
+      (longitud-lista() (length val))
       (es-vacia?     () (null? val))
       (es-lista?     () (list? val))
       (primer-item   () (car val))
@@ -548,7 +550,16 @@ private def (var $x = 0){
  module{
  for(1 to 100){
   module{
-   print('for')
+   // print('for')
+   now $x = ++($x)}}
+ $x}}
+
+
+private def (var $x = 0, var $lista = [1,2,3]){
+ module{
+ for(1 to length($lista)){
+  module{
+   // print('for')
    now $x = ++($x)}}
  $x}}
 

@@ -48,7 +48,7 @@
                 :=  func ( < identificador > , * ) => {  < expresion >  }  
                 función-exp (ids exp)
 
-                :=  import < expresion >  (< expresion > * )  
+                :=  import < expresion >  (< expresion * > )  
                 ejecutar-function-exp (operator operands)
 
                 :=  export func  < identificador >  (< identificador > , * ) => {  < expresion >  }  (< expresion > )
@@ -60,11 +60,26 @@
                 :=  const  < identificador >  =  < expresion > 
                 constante-exp (id  exp)
 
++               :=  var  < identificador >  =  < expresion > 
+                variable-exp (id  exp)
+
                 :=  static  < identificador > 
                 crear-var-exp (id)
 
                 :=  init static  < identificador >  =  < expresion > 
                 asignar-var-exp (id  exp)
+
++               :=  module { < expresion * > }
+                module-exp (exps)
+
++               :=  now  < identificador >  =  < expresion > 
+                reasing-exp (id  exp)
+
++               := for (< expresion > to < expresion >){< expresion >}
+                for-exp (start end exp)
+
++               := print-exp (< expresion >)
+                print-exp (exp)
 
 
 < primitiva-unaria >
